@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#2C1A0E">
+<title>BreadWatch — Bakery Login</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232C1A0E'/%3E%3Cellipse cx='16' cy='18' rx='11' ry='7' fill='%23D4A855'/%3E%3Cellipse cx='16' cy='15' rx='9' ry='5' fill='%23FBF0D0'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<style>
+:root{--cream:#FAF6EE;--crust:#8B4513;--crust-light:#C4783A;--crust-dark:#4A2209;--wheat:#D4A855;--wheat-light:#F0D08A;--wheat-pale:#FBF0D0;--text-dark:#1C0F05;--text-mid:#4A3728;--text-muted:#8B7355;--border:rgba(139,69,19,0.15);--shadow:rgba(44,26,14,0.08);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-dark);min-height:100vh;display:flex;flex-direction:column;}
+.page-hero{background:linear-gradient(150deg,var(--crust-dark),#6B3512,var(--crust-light));padding:3rem 1.5rem 4rem;text-align:center;position:relative;overflow:hidden;}
+.page-hero::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:50px;background:var(--cream);clip-path:ellipse(56% 100% at 50% 100%);}
+.page-hero-logo{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--wheat-light);margin-bottom:.35rem;}
+.page-hero-sub{color:rgba(240,208,138,.7);font-size:.9rem;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(212,168,85,.18);border:1px solid rgba(212,168,85,.35);border-radius:50px;padding:4px 14px;font-size:.68rem;font-weight:600;color:var(--wheat-light);letter-spacing:.08em;text-transform:uppercase;margin-bottom:1rem;}
+.card{background:white;border-radius:20px;border:1px solid var(--border);box-shadow:0 4px 24px var(--shadow);margin:0 1.25rem;overflow:hidden;}
+.card-tabs{display:flex;border-bottom:1px solid var(--border);}
+.card-tab{flex:1;padding:.9rem;text-align:center;font-size:.85rem;font-weight:500;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
+.card-tab.active{color:var(--crust-dark);font-weight:600;border-bottom-color:var(--wheat);}
+.card-body{padding:1.5rem;}
+.form-group{margin-bottom:1rem;}
+.form-label{display:block;font-size:.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;}
+.form-input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--text-dark);background:#FDFAF5;transition:border-color .2s;}
+.form-input:focus{outline:none;border-color:var(--crust);background:white;}
+.form-input.error{border-color:#EF4444;}
+.form-hint{font-size:.71rem;color:var(--text-muted);margin-top:4px;line-height:1.4;}
+.btn-main{width:100%;background:linear-gradient(135deg,var(--crust-dark),var(--crust));color:var(--wheat-light);border:none;padding:13px;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .2s;margin-top:.5rem;}
+.btn-main:hover{opacity:.9;transform:translateY(-1px);}
+.btn-main:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.form-panel{display:none;}
+.form-panel.active{display:block;}
+.divider{display:flex;align-items:center;gap:10px;margin:1rem 0;color:var(--text-muted);font-size:.78rem;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.alert{padding:.85rem 1rem;border-radius:10px;font-size:.82rem;margin-bottom:1rem;line-height:1.4;}
+.alert-error{background:#FEE2E2;color:#991B1B;border:1px solid #FECACA;}
+.alert-success{background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0;}
+.alert-info{background:var(--wheat-pale);color:var(--crust-dark);border:1px solid rgba(212,168,85,.4);}
+
+/* PRICING */
+.pricing-card{background:linear-gradient(135deg,var(--crust-dark),var(--crust));border-radius:20px;padding:1.5rem;margin:1.25rem;color:white;text-align:center;}
+.price-amount{font-family:'Playfair Display',serif;font-size:3rem;font-weight:700;color:var(--wheat-light);line-height:1;}
+.price-period{font-size:.8rem;color:rgba(240,208,138,.65);margin-top:2px;}
+.price-trial{display:inline-block;background:rgba(212,168,85,.2);border:1px solid rgba(212,168,85,.4);border-radius:50px;padding:4px 14px;font-size:.72rem;color:var(--wheat-light);font-weight:600;margin:8px 0;}
+.features-list{list-style:none;text-align:left;margin-top:1rem;}
+.features-list li{display:flex;align-items:flex-start;gap:8px;padding:.4rem 0;font-size:.82rem;color:rgba(240,208,138,.85);border-bottom:1px solid rgba(255,255,255,.08);}
+.features-list li:last-child{border-bottom:none;}
+.features-list li::before{content:'✓';color:#4ADE80;font-weight:700;flex-shrink:0;margin-top:1px;}
+
+.back-link{display:flex;align-items:center;gap:6px;color:var(--text-muted);font-size:.82rem;padding:1rem 1.25rem;text-decoration:none;margin-top:.5rem;}
+.back-link:hover{color:var(--crust);}
+
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-10px);background:var(--crust-dark);color:var(--wheat-light);padding:10px 20px;border-radius:50px;font-size:.82rem;z-index:600;opacity:0;transition:all .35s;pointer-events:none;border:1px solid var(--wheat);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* PENDING APPROVAL */
+.pending-screen{text-align:center;padding:3rem 1.5rem;}
+.pending-icon{font-size:4rem;margin-bottom:1rem;}
+.pending-title{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--crust-dark);margin-bottom:.5rem;}
+.pending-text{font-size:.88rem;color:var(--text-muted);line-height:1.6;max-width:320px;margin:0 auto 1.5rem;}
+.gcash-box{background:var(--wheat-pale);border:1.5px solid var(--wheat);border-radius:16px;padding:1.25rem;margin:0 1.25rem 1rem;}
+.gcash-title{font-size:.8rem;font-weight:700;color:var(--crust-dark);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem;}
+.gcash-number{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--crust);letter-spacing:.05em;}
+.gcash-name{font-size:.78rem;color:var(--text-muted);margin-top:3px;}
+.gcash-amount{display:inline-block;background:var(--crust-dark);color:var(--wheat-light);padding:6px 20px;border-radius:50px;font-size:.88rem;font-weight:600;margin-top:.75rem;}
+.step-list{list-style:none;text-align:left;margin:0 1.25rem;}
+.step-list li{display:flex;gap:12px;align-items:flex-start;padding:.6rem 0;border-bottom:1px solid var(--border);font-size:.82rem;color:var(--text-mid);}
+.step-list li:last-child{border-bottom:none;}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--crust);color:white;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;margin-top:1px;}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<div class="page-hero">
+  <div class="hero-badge">🏪 Bakery Partner Portal</div>
+  <div class="page-hero-logo">🍞 BreadWatch</div>
+  <div class="page-hero-sub">Manage your bakery, products & QR codes</div>
+</div>
+
+<!-- PRICING -->
+<div class="pricing-card">
+  <div class="price-amount">₱99</div>
+  <div class="price-period">per month · no restrictions</div>
+  <div class="price-trial">✨ 7-day free trial</div>
+  <ul class="features-list">
+    <li>Unlimited product listings</li>
+    <li>QR code generation for each product</li>
+    <li>Customizable bakery storefront</li>
+    <li>Customer feedback & reviews</li>
+    <li>Real-time freshness tracking</li>
+    <li>AI-powered freshness insights</li>
+    <li>Visible to all BreadWatch users</li>
+  </ul>
+</div>
+
+<!-- LOGIN / SIGNUP CARD -->
+<div class="card">
+  <div class="card-tabs">
+    <div class="card-tab active" onclick="switchAuthTab('login')">Log In</div>
+    <div class="card-tab" onclick="switchAuthTab('signup')">Create Account</div>
+  </div>
+  <div class="card-body">
+
+    <!-- LOGIN -->
+    <div class="form-panel active" id="panel-login">
+      <div id="login-alert" style="display:none;"></div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-input" type="email" id="login-email" placeholder="your@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-main" onclick="handleLogin()" id="login-btn">Log In to Dashboard</button>
+      <div class="divider">or</div>
+      <div style="text-align:center;font-size:.8rem;color:var(--text-muted);">Forgot password? <a href="#" onclick="handleForgotPassword()" style="color:var(--crust);">Reset it</a></div>
+    </div>
+
+    <!-- SIGNUP -->
+    <div class="form-panel" id="panel-signup">
+      <div id="signup-alert" style="display:none;"></div>
+      <div class="alert alert-info">
+        📋 Fill in your bakery details. After signing up, send ₱99 via GCash and your account will be activated within 24 hours.
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bakery Name *</label>
+        <input class="form-input" type="text" id="signup-bakery" placeholder="e.g. Dela Cruz Panaderia">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address *</label>
+        <input class="form-input" type="email" id="signup-email" placeholder="your@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password *</label>
+        <input class="form-input" type="password" id="signup-password" placeholder="At least 6 characters" autocomplete="new-password">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Owner / Contact Name *</label>
+        <input class="form-input" type="text" id="signup-owner" placeholder="Your full name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bakery Address / Location</label>
+        <input class="form-input" type="text" id="signup-address" placeholder="e.g. 123 Rizal St, Imus, Cavite">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contact Number</label>
+        <input class="form-input" type="text" id="signup-phone" placeholder="09XXXXXXXXX">
+      </div>
+      <button class="btn-main" onclick="handleSignup()" id="signup-btn">Create Bakery Account</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- PENDING APPROVAL SCREEN (hidden by default) -->
+<div id="pending-screen" style="display:none;">
+  <div class="pending-screen">
+    <div class="pending-icon">⏳</div>
+    <div class="pending-title">Account Pending Activation</div>
+    <div class="pending-text">Your bakery account has been created! To activate your subscription, please send ₱99 via GCash.</div>
+  </div>
+
+  <div class="gcash-box">
+    <div class="gcash-title">💚 Send Payment via GCash</div>
+    <div class="gcash-number">0992-887-1828</div>
+    <div class="gcash-name">BreadWatch Platform</div>
+    <div class="gcash-amount">₱99 / month</div>
+  </div>
+
+  <ul class="step-list">
+    <li><div class="step-num">1</div>Open your GCash app and tap "Send Money"</li>
+    <li><div class="step-num">2</div>Enter number: <strong>09928871828</strong> and amount: <strong>₱99</strong></li>
+    <li><div class="step-num">3</div>In the message/note, type your <strong>bakery name and email</strong></li>
+    <li><div class="step-num">4</div>Take a screenshot of the successful transaction</li>
+    <li><div class="step-num">5</div>Send the screenshot to our email or messenger. Your account will be activated within 24 hours.</li>
+  </ul>
+
+  <div style="padding:1.25rem;">
+    <button class="btn-main" onclick="checkActivationStatus()">🔄 Check Activation Status</button>
+    <button class="btn-main" style="background:transparent;color:var(--crust-dark);border:1.5px solid var(--border);margin-top:8px;" onclick="handleLogout()">Log Out</button>
+  </div>
+</div>
+
+<a href="index.html" class="back-link">← Back to BreadWatch</a>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBwj0wxllHWOAOYY1x1e39pAWWj8BSwZcs",
+  authDomain: "breadwatch-e5085.firebaseapp.com",
+  projectId: "breadwatch-e5085",
+  storageBucket: "breadwatch-e5085.firebasestorage.app",
+  messagingSenderId: "372692448537",
+  appId: "1:372692448537:web:9571e2661b186b89700188"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+function switchAuthTab(tab) {
+  document.querySelectorAll('.card-tab').forEach((t,i)=>t.classList.toggle('active',['login','signup'][i]===tab));
+  document.querySelectorAll('.form-panel').forEach((p,i)=>p.classList.toggle('active',['panel-login','panel-signup'][i]===`panel-${tab}`));
+}
+
+function showAlert(panelId, msg, type='error') {
+  const el = document.getElementById(panelId+'-alert');
+  el.className = 'alert alert-'+type;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideAlert(panelId) { document.getElementById(panelId+'-alert').style.display='none'; }
+
+async function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) { showAlert('login','Please enter email and password.'); return; }
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = 'Logging in...';
+  hideAlert('login');
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+    // Auth state change will handle redirect
+  } catch(e) {
+    const msgs = { 'auth/user-not-found':'No account found with this email.', 'auth/wrong-password':'Incorrect password.', 'auth/invalid-email':'Invalid email address.', 'auth/too-many-requests':'Too many attempts. Please try again later.' };
+    showAlert('login', msgs[e.code] || 'Login failed. Please try again.');
+    btn.disabled = false; btn.textContent = 'Log In to Dashboard';
+  }
+}
+
+async function handleSignup() {
+  const bakeryName = document.getElementById('signup-bakery').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const ownerName = document.getElementById('signup-owner').value.trim();
+  const address = document.getElementById('signup-address').value.trim();
+  const phone = document.getElementById('signup-phone').value.trim();
+  if (!bakeryName||!email||!password||!ownerName) { showAlert('signup','Please fill in all required fields.'); return; }
+  if (password.length < 6) { showAlert('signup','Password must be at least 6 characters.'); return; }
+  const btn = document.getElementById('signup-btn');
+  btn.disabled = true; btn.textContent = 'Creating account...';
+  hideAlert('signup');
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(email, password);
+    await db.collection('bakeries').doc(cred.user.uid).set({
+      bakeryName, ownerName, email, address, phone,
+      subscriptionActive: false,
+      verified: false,
+      trialActive: true,
+      trialStart: firebase.firestore.FieldValue.serverTimestamp(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      logoEmoji: '🏪',
+      themeColor: '#4A2209',
+      announcement: '',
+      description: '',
+      tagline: '',
+    });
+    // Notify admin
+    await db.collection('admin_notifications').add({
+      type: 'new_signup',
+      bakeryName, email, ownerName, address, phone,
+      userId: cred.user.uid,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      read: false,
+    });
+    showToast('Account created! Please send payment to activate.');
+  } catch(e) {
+    const msgs = { 'auth/email-already-in-use':'An account already exists with this email.', 'auth/invalid-email':'Invalid email address.', 'auth/weak-password':'Password is too weak.' };
+    showAlert('signup', msgs[e.code] || 'Signup failed. Please try again.');
+    btn.disabled = false; btn.textContent = 'Create Bakery Account';
+  }
+}
+
+async function handleForgotPassword() {
+  const email = document.getElementById('login-email').value.trim();
+  if (!email) { showAlert('login','Enter your email address first.'); return; }
+  try {
+    await auth.sendPasswordResetEmail(email);
+    showAlert('login','Password reset email sent! Check your inbox.', 'success');
+  } catch(e) {
+    showAlert('login','Could not send reset email. Check the address and try again.');
+  }
+}
+
+async function handleLogout() { await auth.signOut(); location.reload(); }
+
+async function checkActivationStatus() {
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    const doc = await db.collection('bakeries').doc(user.uid).get();
+    if (doc.data()?.subscriptionActive) {
+      window.location.href = 'dashboard.html';
+    } else {
+      showToast('Not yet activated. Please ensure payment was sent.');
+    }
+  } catch(e) {}
+}
+
+// Auth state observer
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    try {
+      const doc = await db.collection('bakeries').doc(user.uid).get();
+      if (!doc.exists) { await auth.signOut(); return; }
+      const data = doc.data();
+      // Check if admin
+      if (user.email === 'juderesearchguy@gmail.com') {
+        window.location.href = 'admin.html'; return;
+      }
+      if (data.subscriptionActive) {
+        window.location.href = 'dashboard.html';
+      } else {
+        // Show pending screen
+        document.querySelector('.card').style.display = 'none';
+        document.querySelector('.pricing-card').style.display = 'none';
+        document.getElementById('pending-screen').style.display = 'block';
+      }
+    } catch(e) {}
+  }
+});
+
+let toastTimer;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3000);}
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (document.getElementById('panel-login').classList.contains('active')) handleLogin();
+    else handleSignup();
+  }
+});
+</script>
+</body>
+</html>

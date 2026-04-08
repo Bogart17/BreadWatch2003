@@ -1,0 +1,42 @@
+{
+  "name": "BreadWatch — Freshness Tracker",
+  "short_name": "BreadWatch",
+  "description": "Know exactly when your bread will spoil. Scan or input details for an instant freshness report.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#2C1A0E",
+  "theme_color": "#2C1A0E",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["food", "utilities", "lifestyle"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Scan Bread",
+      "short_name": "Scan",
+      "description": "Quickly scan your bread",
+      "url": "/index.html?action=scan",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Manual Input",
+      "short_name": "Manual",
+      "description": "Enter bread details manually",
+      "url": "/index.html?action=manual",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

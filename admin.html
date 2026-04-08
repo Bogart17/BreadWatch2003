@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1E1B4B">
+<title>BreadWatch — Admin Panel</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231E1B4B'/%3E%3Cellipse cx='16' cy='18' rx='11' ry='7' fill='%23D4A855'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --bg:#0F0E1A;--surface:#1A1930;--surface2:#222140;--accent:#D4A855;--accent-light:#F0D08A;
+  --text:#F1F0FF;--text-muted:#9B99C0;--border:rgba(212,168,85,.18);
+  --green:#4ADE80;--red:#F87171;--amber:#FCD34D;--blue:#60A5FA;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+header{background:var(--surface);border-bottom:2px solid var(--accent);padding:.9rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.admin-logo{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--accent-light);font-weight:700;}
+.admin-logo span{font-size:.6rem;color:var(--accent);display:block;letter-spacing:.1em;text-transform:uppercase;}
+.hdr-right{display:flex;align-items:center;gap:10px;}
+.admin-badge{background:rgba(212,168,85,.15);border:1px solid var(--accent);border-radius:50px;padding:4px 12px;font-size:.7rem;color:var(--accent-light);font-weight:600;}
+.logout-btn{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:8px;padding:6px 14px;font-family:'DM Sans',sans-serif;font-size:.75rem;color:var(--red);cursor:pointer;transition:all .2s;}
+.logout-btn:hover{background:rgba(248,113,113,.2);}
+
+main{padding:1.5rem;max-width:900px;margin:0 auto;}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--surface);border-radius:12px;padding:4px;margin-bottom:1.5rem;border:1px solid var(--border);}
+.tab{flex:1;padding:9px;text-align:center;font-size:.8rem;font-weight:500;color:var(--text-muted);cursor:pointer;border-radius:8px;transition:all .2s;}
+.tab.active{background:var(--surface2);color:var(--accent-light);font-weight:600;}
+.page-section{display:none;}
+.page-section.active{display:block;}
+
+/* STAT CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1.5rem;}
+@media(min-width:500px){.stat-grid{grid-template-columns:repeat(4,1fr);}}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem;text-align:center;}
+.stat-num{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;line-height:1;}
+.stat-lbl{font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-top:4px;}
+.stat-green{color:var(--green);}
+.stat-amber{color:var(--amber);}
+.stat-blue{color:var(--blue);}
+.stat-red{color:var(--red);}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:12px;}
+.card-header{padding:.85rem 1.1rem;background:var(--surface2);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.card-title{font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;}
+.card-body{padding:1.1rem;}
+
+/* BAKERY ROWS */
+.bakery-row{display:flex;align-items:center;gap:12px;padding:.9rem 1.1rem;border-bottom:1px solid var(--border);}
+.bakery-row:last-child{border-bottom:none;}
+.bakery-emoji{font-size:1.5rem;flex-shrink:0;}
+.bakery-info{flex:1;}
+.bakery-name{font-size:.9rem;font-weight:600;color:var(--text);}
+.bakery-meta{font-size:.72rem;color:var(--text-muted);margin-top:2px;}
+.bakery-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.action-btn{height:28px;padding:0 10px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.7rem;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-activate{background:rgba(74,222,128,.15);color:var(--green);border:1px solid rgba(74,222,128,.3);}
+.btn-activate:hover{background:rgba(74,222,128,.25);}
+.btn-deactivate{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.25);}
+.btn-deactivate:hover{background:rgba(248,113,113,.22);}
+.btn-verify{background:rgba(96,165,250,.12);color:var(--blue);border:1px solid rgba(96,165,250,.25);}
+.btn-verify:hover{background:rgba(96,165,250,.22);}
+.btn-delete{background:rgba(248,113,113,.08);color:#FC8181;border:1px solid rgba(248,113,113,.2);}
+.btn-delete:hover{background:rgba(248,113,113,.18);}
+.btn-view{background:rgba(212,168,85,.1);color:var(--accent-light);border:1px solid var(--border);}
+.btn-view:hover{background:rgba(212,168,85,.2);}
+
+/* STATUS BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:50px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+.badge-active{background:rgba(74,222,128,.15);color:var(--green);}
+.badge-pending{background:rgba(252,211,77,.12);color:var(--amber);}
+.badge-inactive{background:rgba(248,113,113,.12);color:var(--red);}
+.badge-verified{background:rgba(96,165,250,.12);color:var(--blue);}
+.status-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+/* NOTIFICATIONS */
+.notif-row{display:flex;gap:10px;padding:.85rem 1.1rem;border-bottom:1px solid var(--border);align-items:flex-start;}
+.notif-row:last-child{border-bottom:none;}
+.notif-row.unread{background:rgba(212,168,85,.04);}
+.notif-icon{font-size:1.2rem;flex-shrink:0;margin-top:2px;}
+.notif-content{flex:1;}
+.notif-title{font-size:.82rem;font-weight:600;color:var(--text);}
+.notif-body{font-size:.75rem;color:var(--text-muted);margin-top:2px;line-height:1.4;}
+.notif-time{font-size:.65rem;color:var(--text-muted);margin-top:3px;}
+.notif-actions{display:flex;gap:6px;margin-top:6px;}
+
+/* REVENUE */
+.revenue-card{background:linear-gradient(135deg,#1E1B4B,#312E81);border:1px solid rgba(212,168,85,.25);border-radius:16px;padding:1.5rem;margin-bottom:12px;text-align:center;}
+.revenue-amount{font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;color:var(--accent-light);line-height:1;}
+.revenue-label{font-size:.78rem;color:rgba(212,168,85,.65);margin-top:4px;}
+.revenue-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:1rem;}
+.revenue-item{background:rgba(255,255,255,.06);border-radius:10px;padding:.75rem;text-align:center;}
+.revenue-item-num{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--accent-light);}
+.revenue-item-lbl{font-size:.62rem;color:rgba(212,168,85,.6);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+
+/* FORMS */
+.form-group{margin-bottom:.85rem;}
+.form-label{display:block;font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+.form-input{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.86rem;color:var(--text);background:var(--surface2);}
+.form-input:focus{outline:none;border-color:var(--accent);}
+.btn-primary{background:linear-gradient(135deg,#312E81,#4338CA);color:white;border:none;padding:11px 20px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-primary:hover{opacity:.9;}
+
+/* SEARCH */
+.search-bar{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.86rem;color:var(--text);background:var(--surface);margin-bottom:1rem;}
+.search-bar:focus{outline:none;border-color:var(--accent);}
+.search-bar::placeholder{color:var(--text-muted);}
+
+/* TOAST */
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-10px);background:var(--surface2);color:var(--accent-light);padding:10px 20px;border-radius:50px;font-size:.82rem;z-index:600;opacity:0;transition:all .35s;pointer-events:none;border:1px solid var(--accent);white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#loading-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:800;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+#loading-overlay.visible{display:flex;}
+.spinner{width:40px;height:40px;border:3px solid rgba(212,168,85,.3);border-top-color:var(--accent-light);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#loading-overlay p{color:var(--accent-light);font-size:.9rem;}
+
+.section-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--accent-light);margin-bottom:.85rem;display:flex;align-items:center;gap:8px;}
+.empty-state{text-align:center;padding:2rem;color:var(--text-muted);font-size:.85rem;}
+
+.detail-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem;}
+.detail-modal-overlay.visible{display:flex;}
+.detail-modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;}
+.detail-modal-header{padding:1rem 1.25rem;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;}
+.detail-modal-title{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--accent-light);}
+.detail-modal-close{background:none;border:none;color:var(--text-muted);font-size:1.3rem;cursor:pointer;}
+.detail-row{padding:.75rem 1.25rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.detail-row:last-child{border-bottom:none;}
+.detail-key{font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;}
+.detail-val{font-size:.82rem;color:var(--text);text-align:right;word-break:break-all;}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div id="loading-overlay"><div class="spinner"></div><p>Loading...</p></div>
+
+<div class="detail-modal-overlay" id="detail-modal">
+  <div class="detail-modal">
+    <div class="detail-modal-header">
+      <div class="detail-modal-title" id="detail-modal-title">Bakery Details</div>
+      <button class="detail-modal-close" onclick="closeDetailModal()">✕</button>
+    </div>
+    <div id="detail-modal-body"></div>
+  </div>
+</div>
+
+<header>
+  <div class="admin-logo">🍞 BreadWatch <span>Admin Panel</span></div>
+  <div class="hdr-right">
+    <div class="admin-badge">👑 Admin</div>
+    <button class="logout-btn" onclick="handleLogout()">Log Out</button>
+  </div>
+</header>
+
+<main>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('overview')">📊 Overview</div>
+    <div class="tab" onclick="switchTab('bakeries')">🏪 Bakeries</div>
+    <div class="tab" onclick="switchTab('notifications')">🔔 Inbox</div>
+    <div class="tab" onclick="switchTab('revenue')">💰 Revenue</div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="page-section active" id="tab-overview">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num stat-green" id="stat-active">0</div><div class="stat-lbl">Active</div></div>
+      <div class="stat-card"><div class="stat-num stat-amber" id="stat-pending">0</div><div class="stat-lbl">Pending</div></div>
+      <div class="stat-card"><div class="stat-num stat-blue" id="stat-total">0</div><div class="stat-lbl">Total</div></div>
+      <div class="stat-card"><div class="stat-num stat-green" id="stat-revenue">₱0</div><div class="stat-lbl">Est. Monthly</div></div>
+    </div>
+
+    <div class="section-title"><span>🔔</span> Pending Actions</div>
+    <div class="card" id="pending-actions-card">
+      <div id="pending-actions-list"><div class="empty-state">No pending actions</div></div>
+    </div>
+
+    <div class="section-title"><span>🏪</span> Recent Signups</div>
+    <div class="card">
+      <div id="recent-signups-list"><div class="empty-state">No recent signups</div></div>
+    </div>
+  </div>
+
+  <!-- BAKERIES -->
+  <div class="page-section" id="tab-bakeries">
+    <input class="search-bar" type="text" id="bakery-search" placeholder="🔍 Search bakeries by name or email..." oninput="filterBakeries()">
+    <div class="section-title"><span>🏪</span> All Bakeries (<span id="bakery-count">0</span>)</div>
+    <div class="card">
+      <div id="all-bakeries-list"><div class="empty-state">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS / INBOX -->
+  <div class="page-section" id="tab-notifications">
+    <div class="section-title"><span>🔔</span> Signup Requests & Payments</div>
+    <div class="card">
+      <div id="notifications-list"><div class="empty-state">No notifications</div></div>
+    </div>
+  </div>
+
+  <!-- REVENUE -->
+  <div class="page-section" id="tab-revenue">
+    <div class="revenue-card">
+      <div class="revenue-amount" id="rev-monthly">₱0</div>
+      <div class="revenue-label">Estimated Monthly Revenue</div>
+      <div class="revenue-grid">
+        <div class="revenue-item"><div class="revenue-item-num" id="rev-active">0</div><div class="revenue-item-lbl">Active</div></div>
+        <div class="revenue-item"><div class="revenue-item-num" id="rev-per">₱99</div><div class="revenue-item-lbl">Per Bakery</div></div>
+        <div class="revenue-item"><div class="revenue-item-num" id="rev-total">₱0</div><div class="revenue-item-lbl">Total Earned</div></div>
+      </div>
+    </div>
+
+    <div class="section-title"><span>📋</span> Active Subscribers</div>
+    <div class="card">
+      <div id="revenue-list"><div class="empty-state">Loading...</div></div>
+    </div>
+
+    <div class="section-title"><span>💚</span> GCash Payment Info</div>
+    <div class="card">
+      <div class="card-body">
+        <div style="text-align:center;">
+          <div style="font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem;">Your GCash Number</div>
+          <div style="font-family:'Playfair Display',serif;font-size:2rem;color:var(--accent-light);letter-spacing:.05em;">0992-887-1828</div>
+          <div style="font-size:.78rem;color:var(--text-muted);margin-top:4px;">BreadWatch Platform</div>
+          <div style="margin-top:1rem;font-size:.82rem;color:var(--text-muted);line-height:1.6;">When bakery owners send ₱99, check your GCash for the bakery name + email in the note. Then activate their account from the Bakeries tab.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title"><span>📣</span> Send Platform Announcement</div>
+    <div class="card">
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">Announcement Message</label>
+          <textarea class="form-input" id="announcement-text" rows="3" placeholder="e.g. New feature: customers can now follow their favorite bakeries!"></textarea>
+        </div>
+        <button class="btn-primary" onclick="sendAnnouncement()">📣 Send to All Bakeries</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBwj0wxllHWOAOYY1x1e39pAWWj8BSwZcs",
+  authDomain: "breadwatch-e5085.firebaseapp.com",
+  projectId: "breadwatch-e5085",
+  storageBucket: "breadwatch-e5085.firebasestorage.app",
+  messagingSenderId: "372692448537",
+  appId: "1:372692448537:web:9571e2661b186b89700188"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const ADMIN_EMAIL = 'juderesearchguy@gmail.com';
+const PRICE_PER_BAKERY = 99;
+
+let allBakeries = [];
+
+// ============================================================
+// AUTH GUARD
+// ============================================================
+auth.onAuthStateChanged(async (user) => {
+  if (!user || user.email !== ADMIN_EMAIL) {
+    window.location.href = 'owner-login.html'; return;
+  }
+  showLoading('Loading admin panel...');
+  await loadAllData();
+  hideLoading();
+});
+
+function handleLogout() {
+  auth.signOut().then(() => window.location.href = 'owner-login.html');
+}
+
+// ============================================================
+// DATA LOADING
+// ============================================================
+async function loadAllData() {
+  try {
+    const snap = await db.collection('bakeries').get();
+    allBakeries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderOverview();
+    renderBakeries(allBakeries);
+    await loadNotifications();
+    renderRevenue();
+  } catch(e) { showToast('Error loading data: ' + e.message); }
+}
+
+function renderOverview() {
+  const active = allBakeries.filter(b => b.subscriptionActive).length;
+  const pending = allBakeries.filter(b => !b.subscriptionActive).length;
+  const total = allBakeries.length;
+  const revenue = active * PRICE_PER_BAKERY;
+  document.getElementById('stat-active').textContent = active;
+  document.getElementById('stat-pending').textContent = pending;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-revenue').textContent = '₱' + revenue.toLocaleString();
+
+  // Pending actions — bakeries not yet activated
+  const pendingList = allBakeries.filter(b => !b.subscriptionActive);
+  const pendingEl = document.getElementById('pending-actions-list');
+  if (!pendingList.length) {
+    pendingEl.innerHTML = '<div class="empty-state">✅ No pending activations</div>';
+  } else {
+    pendingEl.innerHTML = pendingList.map(b => bakeryRowHTML(b, true)).join('');
+  }
+
+  // Recent signups (last 5, sorted by createdAt)
+  const sorted = [...allBakeries].sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0)).slice(0, 5);
+  const recentEl = document.getElementById('recent-signups-list');
+  if (!sorted.length) { recentEl.innerHTML = '<div class="empty-state">No signups yet</div>'; return; }
+  recentEl.innerHTML = sorted.map(b => bakeryRowHTML(b, false)).join('');
+}
+
+function bakeryRowHTML(b, showActivate = false) {
+  const statusBadge = b.subscriptionActive
+    ? `<span class="badge badge-active"><span class="status-dot"></span>Active</span>`
+    : `<span class="badge badge-pending"><span class="status-dot"></span>Pending</span>`;
+  const verifiedBadge = b.verified ? `<span class="badge badge-verified">✓ Verified</span>` : '';
+  const date = b.createdAt?.toDate?.()?.toLocaleDateString('en-PH') || '—';
+  return `<div class="bakery-row">
+    <div class="bakery-emoji">${b.logoEmoji || '🏪'}</div>
+    <div class="bakery-info">
+      <div class="bakery-name">${b.bakeryName || 'Unnamed'} ${statusBadge} ${verifiedBadge}</div>
+      <div class="bakery-meta">${b.email || ''} · ${b.address || ''} · Signed up: ${date}</div>
+    </div>
+    <div class="bakery-actions">
+      ${!b.subscriptionActive ? `<button class="action-btn btn-activate" onclick="activateBakery('${b.id}','${b.bakeryName}')">✓ Activate</button>` : `<button class="action-btn btn-deactivate" onclick="deactivateBakery('${b.id}','${b.bakeryName}')">✕ Deactivate</button>`}
+      ${!b.verified ? `<button class="action-btn btn-verify" onclick="verifyBakery('${b.id}','${b.bakeryName}')">🏅 Verify</button>` : ''}
+      <button class="action-btn btn-view" onclick="viewBakeryDetails('${b.id}')">👁️ Details</button>
+      <button class="action-btn btn-delete" onclick="deleteBakery('${b.id}','${b.bakeryName}')">🗑️</button>
+    </div>
+  </div>`;
+}
+
+function renderBakeries(bakeries) {
+  document.getElementById('bakery-count').textContent = bakeries.length;
+  const el = document.getElementById('all-bakeries-list');
+  if (!bakeries.length) { el.innerHTML = '<div class="empty-state">No bakeries found</div>'; return; }
+  el.innerHTML = bakeries.map(b => bakeryRowHTML(b)).join('');
+}
+
+function filterBakeries() {
+  const q = document.getElementById('bakery-search').value.toLowerCase();
+  const filtered = q ? allBakeries.filter(b => (b.bakeryName||'').toLowerCase().includes(q) || (b.email||'').toLowerCase().includes(q) || (b.ownerName||'').toLowerCase().includes(q)) : allBakeries;
+  renderBakeries(filtered);
+}
+
+async function loadNotifications() {
+  try {
+    const snap = await db.collection('admin_notifications').orderBy('timestamp','desc').limit(30).get();
+    const el = document.getElementById('notifications-list');
+    if (snap.empty) { el.innerHTML = '<div class="empty-state">No notifications yet</div>'; return; }
+    el.innerHTML = snap.docs.map(doc => {
+      const n = doc.data();
+      const date = n.timestamp?.toDate?.()?.toLocaleDateString('en-PH') || 'Recent';
+      const isNewSignup = n.type === 'new_signup';
+      return `<div class="notif-row ${n.read ? '' : 'unread'}">
+        <div class="notif-icon">${isNewSignup ? '🏪' : '💬'}</div>
+        <div class="notif-content">
+          <div class="notif-title">${isNewSignup ? 'New Signup: ' + (n.bakeryName||'') : n.title || 'Notification'}</div>
+          <div class="notif-body">
+            ${isNewSignup ? `Email: ${n.email||'—'} · Owner: ${n.ownerName||'—'} · ${n.address||''}` : n.body || ''}
+          </div>
+          <div class="notif-time">${date}</div>
+          ${isNewSignup && n.userId ? `<div class="notif-actions">
+            <button class="action-btn btn-activate" onclick="activateBakery('${n.userId}','${n.bakeryName}')">✓ Activate Account</button>
+            <button class="action-btn btn-verify" onclick="verifyBakery('${n.userId}','${n.bakeryName}')">🏅 Verify</button>
+          </div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+    // Mark all as read
+    snap.docs.forEach(doc => { if (!doc.data().read) doc.ref.update({ read: true }); });
+  } catch(e) {}
+}
+
+function renderRevenue() {
+  const active = allBakeries.filter(b => b.subscriptionActive);
+  const monthly = active.length * PRICE_PER_BAKERY;
+  document.getElementById('rev-monthly').textContent = '₱' + monthly.toLocaleString();
+  document.getElementById('rev-active').textContent = active.length;
+  document.getElementById('rev-total').textContent = '₱' + monthly.toLocaleString();
+
+  const el = document.getElementById('revenue-list');
+  if (!active.length) { el.innerHTML = '<div class="empty-state">No active subscribers</div>'; return; }
+  el.innerHTML = active.map(b => `
+    <div class="bakery-row">
+      <div class="bakery-emoji">${b.logoEmoji || '🏪'}</div>
+      <div class="bakery-info">
+        <div class="bakery-name">${b.bakeryName || 'Unnamed'} ${b.verified ? '<span class="badge badge-verified">✓ Verified</span>' : ''}</div>
+        <div class="bakery-meta">${b.email || ''} · ₱99/mo</div>
+      </div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--accent-light);flex-shrink:0;">₱99</div>
+    </div>`).join('');
+}
+
+// ============================================================
+// ACTIONS
+// ============================================================
+async function activateBakery(id, name) {
+  if (!confirm(`Activate subscription for "${name}"?\n\nThis confirms you have received their ₱99 GCash payment.`)) return;
+  try {
+    await db.collection('bakeries').doc(id).update({ subscriptionActive: true, subscriptionStart: firebase.firestore.FieldValue.serverTimestamp() });
+    const idx = allBakeries.findIndex(b => b.id === id);
+    if (idx !== -1) allBakeries[idx].subscriptionActive = true;
+    showToast('✓ ' + name + ' subscription activated!');
+    renderOverview(); renderBakeries(allBakeries); renderRevenue();
+  } catch(e) { showToast('Error: ' + e.message); }
+}
+
+async function deactivateBakery(id, name) {
+  if (!confirm(`Deactivate subscription for "${name}"?\n\nThey will lose access to their dashboard.`)) return;
+  try {
+    await db.collection('bakeries').doc(id).update({ subscriptionActive: false });
+    const idx = allBakeries.findIndex(b => b.id === id);
+    if (idx !== -1) allBakeries[idx].subscriptionActive = false;
+    showToast('✓ ' + name + ' deactivated.');
+    renderOverview(); renderBakeries(allBakeries); renderRevenue();
+  } catch(e) { showToast('Error: ' + e.message); }
+}
+
+async function verifyBakery(id, name) {
+  if (!confirm(`Mark "${name}" as a verified partner bakery?\n\nThis adds a verified badge to their storefront.`)) return;
+  try {
+    await db.collection('bakeries').doc(id).update({ verified: true });
+    const idx = allBakeries.findIndex(b => b.id === id);
+    if (idx !== -1) allBakeries[idx].verified = true;
+    showToast('🏅 ' + name + ' verified!');
+    renderOverview(); renderBakeries(allBakeries);
+  } catch(e) { showToast('Error: ' + e.message); }
+}
+
+async function deleteBakery(id, name) {
+  if (!confirm(`⚠️ PERMANENTLY DELETE "${name}"?\n\nThis removes the bakery, all products, and all data. This cannot be undone.`)) return;
+  try {
+    await db.collection('bakeries').doc(id).delete();
+    allBakeries = allBakeries.filter(b => b.id !== id);
+    showToast('✓ Bakery deleted.');
+    renderOverview(); renderBakeries(allBakeries); renderRevenue();
+  } catch(e) { showToast('Error: ' + e.message); }
+}
+
+function viewBakeryDetails(id) {
+  const b = allBakeries.find(b => b.id === id);
+  if (!b) return;
+  document.getElementById('detail-modal-title').textContent = b.bakeryName || 'Bakery Details';
+  const date = b.createdAt?.toDate?.()?.toLocaleDateString('en-PH') || '—';
+  const rows = [
+    ['Bakery Name', b.bakeryName || '—'],
+    ['Owner', b.ownerName || '—'],
+    ['Email', b.email || '—'],
+    ['Phone', b.phone || '—'],
+    ['Address', b.address || '—'],
+    ['Status', b.subscriptionActive ? '✅ Active' : '⏳ Pending'],
+    ['Verified', b.verified ? '🏅 Yes' : '—'],
+    ['Signed Up', date],
+    ['Tagline', b.tagline || '—'],
+    ['Description', b.description || '—'],
+    ['Theme Color', b.themeColor || '—'],
+    ['Firebase ID', id],
+  ];
+  document.getElementById('detail-modal-body').innerHTML = rows.map(([k,v]) => `<div class="detail-row"><div class="detail-key">${k}</div><div class="detail-val">${v}</div></div>`).join('');
+  document.getElementById('detail-modal').classList.add('visible');
+}
+function closeDetailModal() { document.getElementById('detail-modal').classList.remove('visible'); }
+
+async function sendAnnouncement() {
+  const text = document.getElementById('announcement-text').value.trim();
+  if (!text) { showToast('⚠️ Enter an announcement message first.'); return; }
+  if (!confirm('Send this announcement to all active bakeries?')) return;
+  try {
+    const active = allBakeries.filter(b => b.subscriptionActive);
+    const batch = db.batch();
+    active.forEach(b => {
+      const ref = db.collection('bakeries').doc(b.id);
+      batch.update(ref, { platformAnnouncement: text, platformAnnouncementDate: firebase.firestore.FieldValue.serverTimestamp() });
+    });
+    await batch.commit();
+    document.getElementById('announcement-text').value = '';
+    showToast('✓ Announcement sent to ' + active.length + ' bakeries!');
+  } catch(e) { showToast('Error: ' + e.message); }
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['overview','bakeries','notifications','revenue'][i] === tab));
+  document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function showLoading(msg) { document.getElementById('loading-overlay').classList.add('visible'); }
+function hideLoading() { document.getElementById('loading-overlay').classList.remove('visible'); }
+let toastTimer;
+function showToast(msg) { const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3500); }
+</script>
+</body>
+</html>

@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#2C1A0E">
+<title>BreadWatch — Bakery Dashboard</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232C1A0E'/%3E%3Cellipse cx='16' cy='18' rx='11' ry='7' fill='%23D4A855'/%3E%3Cellipse cx='16' cy='15' rx='9' ry='5' fill='%23FBF0D0'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--cream:#FAF6EE;--warm-white:#FDF9F3;--crust:#8B4513;--crust-light:#C4783A;--crust-dark:#4A2209;--wheat:#D4A855;--wheat-light:#F0D08A;--wheat-pale:#FBF0D0;--text-dark:#1C0F05;--text-mid:#4A3728;--text-muted:#8B7355;--border:rgba(139,69,19,0.15);--shadow:rgba(44,26,14,0.08);--fresh:#2D6A4F;--warn:#D97706;--danger:#B91C1C;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-dark);min-height:100vh;}
+
+/* DASH HEADER */
+.dash-header{background:var(--crust-dark);padding:.85rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;border-bottom:3px solid var(--wheat);}
+.dash-logo{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--wheat-light);font-weight:700;}
+.dash-logo span{font-size:.65rem;color:var(--wheat);display:block;letter-spacing:.1em;text-transform:uppercase;font-weight:500;}
+.dash-actions{display:flex;gap:8px;align-items:center;}
+.dash-btn{height:32px;padding:0 12px;border-radius:50px;border:1.5px solid rgba(244,208,138,.3);background:rgba(244,208,138,.1);font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:500;color:var(--wheat-light);cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s;}
+.dash-btn:hover{background:rgba(244,208,138,.25);}
+.dash-btn.danger{border-color:rgba(239,68,68,.4);color:#FCA5A5;}
+
+main{padding:0 0 90px;}
+.page-section{display:none;}
+.page-section.active{display:block;}
+
+/* NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--border);display:flex;padding:7px 0 14px;z-index:100;box-shadow:0 -4px 20px var(--shadow);}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px 0;transition:all .2s;}
+.nav-icon{font-size:19px;}
+.nav-label{font-size:.58rem;font-weight:500;color:var(--text-muted);letter-spacing:.04em;}
+.nav-item.active .nav-label{color:var(--crust);font-weight:600;}
+
+/* OVERVIEW */
+.overview-hero{background:linear-gradient(150deg,var(--crust-dark),var(--crust));padding:1.5rem 1.25rem 2rem;position:relative;overflow:hidden;}
+.overview-hero::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:36px;background:var(--cream);clip-path:ellipse(55% 100% at 50% 100%);}
+.bakery-greeting{font-size:.78rem;color:rgba(240,208,138,.65);font-weight:500;}
+.bakery-name{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--wheat-light);font-weight:700;line-height:1.15;margin-top:2px;}
+.sub-status{display:inline-flex;align-items:center;gap:6px;background:rgba(212,168,85,.18);border:1px solid rgba(212,168,85,.35);border-radius:50px;padding:4px 12px;font-size:.7rem;font-weight:600;color:var(--wheat-light);margin-top:.65rem;}
+.sub-dot{width:7px;height:7px;border-radius:50%;background:#4ADE80;animation:blink 1.5s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:1.25rem 1.25rem 0;}
+.stat-card{background:white;border-radius:14px;padding:1rem 8px;text-align:center;border:1px solid var(--border);box-shadow:0 2px 8px var(--shadow);}
+.stat-num{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--crust);line-height:1;}
+.stat-lbl{font-size:.62rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500;margin-top:3px;}
+.section-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--crust-dark);margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.section-title-left{display:flex;align-items:center;gap:7px;}
+section{padding:1.25rem 1.25rem 0;}
+
+/* FEEDBACK PREVIEW */
+.feedback-preview{background:white;border-radius:14px;padding:.85rem 1rem;margin-bottom:8px;border:1px solid var(--border);}
+.feedback-stars{color:#F59E0B;font-size:.85rem;}
+.feedback-product{font-size:.72rem;color:var(--crust-light);font-weight:600;margin-bottom:2px;}
+.feedback-text{font-size:.82rem;color:var(--text-mid);line-height:1.4;}
+.feedback-meta{font-size:.68rem;color:var(--text-muted);margin-top:3px;}
+.empty-state{text-align:center;padding:2rem 1rem;color:var(--text-muted);font-size:.85rem;line-height:1.5;}
+.empty-icon{font-size:2.5rem;margin-bottom:.5rem;}
+
+/* PRODUCTS */
+.product-list-item{background:white;border-radius:16px;border:1px solid var(--border);margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px var(--shadow);}
+.product-list-header{display:flex;align-items:center;gap:12px;padding:.85rem 1rem;}
+.product-list-emoji{font-size:1.8rem;flex-shrink:0;}
+.product-list-info{flex:1;}
+.product-list-name{font-size:.92rem;font-weight:600;color:var(--text-dark);}
+.product-list-shelf{font-size:.72rem;color:var(--text-muted);margin-top:1px;}
+.product-list-actions{display:flex;gap:6px;}
+.product-action-btn{height:30px;padding:0 10px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--warm-white);color:var(--text-mid);transition:all .2s;display:flex;align-items:center;gap:4px;}
+.product-action-btn:hover{border-color:var(--crust);color:var(--crust-dark);}
+.product-action-btn.danger{border-color:#FECACA;color:#DC2626;}
+.product-active-bar{height:3px;background:var(--wheat-pale);}
+.product-active-bar.active{background:linear-gradient(90deg,var(--fresh),var(--wheat));}
+.btn-add-product{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--crust-dark),var(--crust));color:var(--wheat-light);border:none;padding:12px 20px;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s;width:100%;justify-content:center;}
+.btn-add-product:hover{opacity:.9;}
+
+/* QR MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.visible{display:flex;}
+.modal{background:white;border-radius:20px;width:100%;max-width:400px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.modal-header{background:var(--crust-dark);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--wheat-light);font-weight:700;}
+.modal-close{background:none;border:none;color:var(--wheat-light);font-size:1.3rem;cursor:pointer;}
+.modal-body{padding:1.25rem;}
+.qr-container{display:flex;flex-direction:column;align-items:center;gap:1rem;}
+#qr-display{background:white;padding:16px;border-radius:12px;border:2px solid var(--border);}
+.qr-product-name{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--crust-dark);text-align:center;}
+.qr-bakery-name{font-size:.75rem;color:var(--text-muted);text-align:center;margin-top:2px;}
+.qr-actions{display:flex;gap:8px;width:100%;}
+.btn-qr-action{flex:1;padding:10px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;text-align:center;}
+.btn-qr-download{background:var(--crust-dark);color:var(--wheat-light);border:none;}
+.btn-qr-download:hover{background:var(--crust);}
+.btn-qr-share{background:var(--warm-white);color:var(--text-mid);border:1.5px solid var(--border);}
+.btn-qr-share:hover{border-color:var(--crust);}
+
+/* ADD PRODUCT MODAL */
+.form-group{margin-bottom:.9rem;}
+.form-label{display:block;font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+.form-input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.86rem;color:var(--text-dark);background:var(--warm-white);transition:border-color .2s;appearance:none;}
+.form-input:focus{outline:none;border-color:var(--crust);background:white;}
+textarea.form-input{resize:none;height:70px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-main{width:100%;background:linear-gradient(135deg,var(--crust-dark),var(--crust));color:var(--wheat-light);border:none;padding:12px;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;margin-top:6px;transition:all .2s;}
+.btn-main:hover{opacity:.9;}
+.btn-main:disabled{opacity:.5;cursor:not-allowed;}
+
+/* PROFILE */
+.profile-section{background:white;border-radius:16px;border:1px solid var(--border);overflow:hidden;margin-bottom:12px;}
+.profile-section-title{padding:.65rem 1rem;background:var(--warm-white);font-size:.65rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;border-bottom:1px solid var(--border);}
+.profile-row{padding:.85rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.profile-row:last-child{border-bottom:none;}
+.profile-row-label{font-size:.82rem;font-weight:500;color:var(--text-dark);}
+.profile-row-val{font-size:.78rem;color:var(--text-muted);}
+.profile-input-row{padding:.75rem 1rem;border-bottom:1px solid var(--border);}
+.profile-input-row:last-child{border-bottom:none;}
+.profile-save-btn{display:flex;align-items:center;justify-content:center;gap:6px;background:var(--crust-dark);color:var(--wheat-light);border:none;padding:11px 20px;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;width:100%;margin-top:6px;transition:all .2s;}
+.profile-save-btn:hover{background:var(--crust);}
+
+/* SUBSCRIPTION */
+.sub-card{background:linear-gradient(135deg,var(--crust-dark),var(--crust));border-radius:16px;padding:1.25rem;text-align:center;margin-bottom:12px;}
+.sub-card-title{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--wheat-light);font-weight:700;margin-bottom:.25rem;}
+.sub-card-price{font-size:.85rem;color:rgba(240,208,138,.7);}
+.sub-renew-btn{display:inline-flex;align-items:center;gap:6px;background:var(--wheat);color:var(--crust-dark);border:none;padding:10px 24px;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;margin-top:.85rem;}
+
+/* TOAST */
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-10px);background:var(--crust-dark);color:var(--wheat-light);padding:10px 20px;border-radius:50px;font-size:.82rem;z-index:600;opacity:0;transition:all .35s;pointer-events:none;border:1px solid var(--wheat);white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#loading-overlay{display:none;position:fixed;inset:0;background:rgba(26,15,5,.75);z-index:800;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+#loading-overlay.visible{display:flex;}
+.spinner{width:40px;height:40px;border:3px solid rgba(244,208,138,.3);border-top-color:var(--wheat-light);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#loading-overlay p{color:var(--wheat-light);font-size:.9rem;}
+
+/* RENEWAL GCASH */
+.gcash-box{background:var(--wheat-pale);border:1.5px solid var(--wheat);border-radius:14px;padding:1.1rem;text-align:center;}
+.gcash-num{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--crust);letter-spacing:.05em;}
+.gcash-name{font-size:.75rem;color:var(--text-muted);}
+.gcash-amt{display:inline-block;background:var(--crust-dark);color:var(--wheat-light);padding:5px 18px;border-radius:50px;font-size:.85rem;font-weight:600;margin-top:.65rem;}
+
+/* TOGGLE */
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:#D1D5DB;border-radius:50px;cursor:pointer;transition:.3s;}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:white;border-radius:50%;transition:.3s;}
+.toggle input:checked+.toggle-slider{background:var(--crust);}
+.toggle input:checked+.toggle-slider::before{transform:translateX(20px);}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div id="loading-overlay"><div class="spinner"></div><p id="loading-text">Loading...</p></div>
+
+<!-- QR MODAL -->
+<div class="modal-overlay" id="qr-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📦 Product QR Code</div>
+      <button class="modal-close" onclick="closeQRModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="qr-container">
+        <div>
+          <div class="qr-product-name" id="qr-product-name">Product Name</div>
+          <div class="qr-bakery-name" id="qr-bakery-name">Bakery Name</div>
+        </div>
+        <div id="qr-display"></div>
+        <div class="qr-actions">
+          <button class="btn-qr-action btn-qr-download" onclick="downloadQR()">⬇️ Download</button>
+          <button class="btn-qr-action btn-qr-share" onclick="shareQR()">📤 Share</button>
+        </div>
+        <div style="font-size:.72rem;color:var(--text-muted);text-align:center;line-height:1.4;">Print and attach this QR code to your product packaging. Customers scan it to see freshness info.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PRODUCT MODAL -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal" style="max-width:480px;max-height:90vh;overflow-y:auto;">
+    <div class="modal-header">
+      <div class="modal-title" id="product-modal-title">➕ Add New Product</div>
+      <button class="modal-close" onclick="closeProductModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editing-product-id">
+      <div class="form-group">
+        <label class="form-label">Product Name *</label>
+        <input class="form-input" type="text" id="prod-name" placeholder="e.g. Classic Pandesal">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bread Type *</label>
+        <select class="form-input" id="prod-bread-key">
+          <option value="">Select bread type</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Price (₱)</label>
+          <input class="form-input" type="number" id="prod-price" placeholder="5" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Emoji Icon</label>
+          <input class="form-input" type="text" id="prod-emoji" placeholder="🥯" maxlength="4">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Storage Instructions</label>
+        <select class="form-input" id="prod-storage">
+          <option value="Counter / Pantry">Counter / Pantry</option>
+          <option value="Refrigerator">Refrigerator</option>
+          <option value="Freezer">Freezer</option>
+          <option value="Airtight Container">Airtight Container</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ingredients (optional)</label>
+        <input class="form-input" type="text" id="prod-ingredients" placeholder="Flour, sugar, eggs, butter...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Product Description (optional)</label>
+        <textarea class="form-input" id="prod-description" placeholder="Tell customers about this product..."></textarea>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div class="form-label" style="margin-bottom:0;">Active / Visible</div>
+          <div style="font-size:.7rem;color:var(--text-muted);">Show on your storefront</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="prod-active" checked><span class="toggle-slider"></span></label>
+      </div>
+      <button class="btn-main" onclick="saveProduct()" id="save-product-btn">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<div class="dash-header">
+  <div class="dash-logo">🍞 BreadWatch <span>Bakery Dashboard</span></div>
+  <div class="dash-actions">
+    <a href="index.html" class="dash-btn" style="text-decoration:none;">👁️ View Store</a>
+    <button class="dash-btn danger" onclick="handleLogout()">Log Out</button>
+  </div>
+</div>
+
+<main>
+
+<!-- OVERVIEW -->
+<div class="page-section active" id="page-overview">
+  <div class="overview-hero">
+    <div class="bakery-greeting">Good day, bakery owner!</div>
+    <div class="bakery-name" id="dash-bakery-name">Loading...</div>
+    <div class="sub-status"><div class="sub-dot"></div><span id="sub-status-text">Active Subscription</span></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num" id="stat-products">0</div><div class="stat-lbl">Products</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-feedback">0</div><div class="stat-lbl">Reviews</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-rating">—</div><div class="stat-lbl">Avg Rating</div></div>
+  </div>
+  <section>
+    <div class="section-title">
+      <div class="section-title-left"><span>💬</span> Recent Feedback</div>
+    </div>
+    <div id="recent-feedback-list">
+      <div class="empty-state"><div class="empty-icon">💬</div>No feedback yet. Add products and generate QR codes so customers can leave reviews!</div>
+    </div>
+  </section>
+  <section>
+    <div class="section-title">
+      <div class="section-title-left"><span>🍞</span> Your Products</div>
+      <button class="btn-add-product" style="width:auto;padding:8px 16px;font-size:.78rem;" onclick="openAddProduct()">+ Add</button>
+    </div>
+    <div id="overview-product-list">
+      <div class="empty-state"><div class="empty-icon">🥯</div>No products yet. Add your first product!</div>
+    </div>
+  </section>
+</div>
+
+<!-- PRODUCTS -->
+<div class="page-section" id="page-products">
+  <div style="background:linear-gradient(135deg,var(--crust-dark),var(--crust));padding:1.25rem 1.25rem 1.5rem;">
+    <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--wheat-light);font-weight:700;">My Products</div>
+    <div style="font-size:.8rem;color:rgba(240,208,138,.7);margin-top:2px;">Manage your bread listings and QR codes</div>
+  </div>
+  <section>
+    <button class="btn-add-product" onclick="openAddProduct()">➕ Add New Product</button>
+    <div style="height:1rem;"></div>
+    <div id="full-product-list">
+      <div class="empty-state"><div class="empty-icon">🥯</div>No products yet. Add your first product to get started!</div>
+    </div>
+  </section>
+</div>
+
+<!-- FEEDBACK -->
+<div class="page-section" id="page-feedback">
+  <div style="background:linear-gradient(135deg,#14532D,#15803D);padding:1.25rem 1.25rem 1.5rem;">
+    <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#D1FAE5;font-weight:700;">Customer Feedback</div>
+    <div style="font-size:.8rem;color:rgba(209,250,229,.7);margin-top:2px;">See what your customers are saying</div>
+  </div>
+  <section>
+    <div id="all-feedback-list">
+      <div class="empty-state"><div class="empty-icon">⭐</div>No feedback yet.</div>
+    </div>
+  </section>
+</div>
+
+<!-- PROFILE / STOREFRONT -->
+<div class="page-section" id="page-profile">
+  <div style="background:linear-gradient(135deg,#1E1B4B,#312E81);padding:1.25rem 1.25rem 1.5rem;">
+    <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#E0E7FF;font-weight:700;">Bakery Profile</div>
+    <div style="font-size:.8rem;color:rgba(224,231,255,.65);margin-top:2px;">Customize your storefront appearance</div>
+  </div>
+  <section>
+    <!-- SUBSCRIPTION STATUS -->
+    <div class="sub-card">
+      <div class="sub-card-title">✨ Active Subscription</div>
+      <div class="sub-card-price">₱99 / month · Full access · No restrictions</div>
+      <button class="sub-renew-btn" onclick="showRenewalInfo()">🔄 Renew / Extend</button>
+    </div>
+    <div id="renewal-info" style="display:none;margin-bottom:12px;">
+      <div class="gcash-box">
+        <div style="font-size:.72rem;font-weight:700;color:var(--crust-dark);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.65rem;">💚 Renew via GCash</div>
+        <div class="gcash-num">0992-887-1828</div>
+        <div class="gcash-name">BreadWatch Platform</div>
+        <div class="gcash-amt">₱99 / month</div>
+        <div style="font-size:.72rem;color:var(--text-muted);margin-top:.65rem;line-height:1.4;">Send payment with your bakery name and email. We will extend your subscription within 24 hours.</div>
+      </div>
+    </div>
+
+    <!-- PROFILE FORM -->
+    <div class="profile-section">
+      <div class="profile-section-title">🏪 Bakery Information</div>
+      <div class="profile-input-row">
+        <label class="form-label">Bakery Name</label>
+        <input class="form-input" type="text" id="prof-name" placeholder="Your bakery name">
+      </div>
+      <div class="profile-input-row">
+        <label class="form-label">Tagline / Slogan</label>
+        <input class="form-input" type="text" id="prof-tagline" placeholder="e.g. Fresh from the oven daily">
+      </div>
+      <div class="profile-input-row">
+        <label class="form-label">About / Description</label>
+        <textarea class="form-input" id="prof-description" placeholder="Tell customers about your bakery..."></textarea>
+      </div>
+      <div class="profile-input-row">
+        <label class="form-label">Address / Location</label>
+        <input class="form-input" type="text" id="prof-address" placeholder="Full address">
+      </div>
+      <div class="profile-input-row">
+        <label class="form-label">Contact Number</label>
+        <input class="form-input" type="text" id="prof-phone" placeholder="09XXXXXXXXX">
+      </div>
+      <div class="profile-input-row">
+        <label class="form-label">Announcement (shows banner on your store)</label>
+        <input class="form-input" type="text" id="prof-announcement" placeholder="e.g. Open daily 5AM–10PM!">
+      </div>
+      <div class="profile-input-row">
+        <label class="form-label">Logo Emoji</label>
+        <input class="form-input" type="text" id="prof-emoji" placeholder="🏪" maxlength="4">
+      </div>
+      <div class="profile-input-row">
+        <label class="form-label">Theme Color (header color)</label>
+        <input class="form-input" type="color" id="prof-theme" value="#4A2209">
+      </div>
+      <div class="profile-input-row">
+        <button class="profile-save-btn" onclick="saveProfile()">💾 Save Profile</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+</main>
+
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="showSection('overview')"><div class="nav-icon">🏠</div><div class="nav-label">Overview</div></div>
+  <div class="nav-item" onclick="showSection('products')"><div class="nav-icon">🍞</div><div class="nav-label">Products</div></div>
+  <div class="nav-item" onclick="showSection('feedback')"><div class="nav-icon">💬</div><div class="nav-label">Feedback</div></div>
+  <div class="nav-item" onclick="showSection('profile')"><div class="nav-icon">⚙️</div><div class="nav-label">Profile</div></div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBwj0wxllHWOAOYY1x1e39pAWWj8BSwZcs",
+  authDomain: "breadwatch-e5085.firebaseapp.com",
+  projectId: "breadwatch-e5085",
+  storageBucket: "breadwatch-e5085.firebasestorage.app",
+  messagingSenderId: "372692448537",
+  appId: "1:372692448537:web:9571e2661b186b89700188"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let currentUser = null;
+let bakeryData = null;
+let bakeryId = null;
+let allProducts = [];
+const SITE_URL = 'https://bogart17.github.io/breadwatch';
+
+// BREAD DATA (subset for dropdown)
+const breadTypes = {
+  'pandesal':'Pandesal 🥯','monay':'Monay 🍞','putok':'Putok / Star Bread ✴️','kababayan':'Kababayan 🧁','spanish-bread':'Spanish Bread 🥖','pan-de-coco':'Pan de Coco 🥥','kalihim':'Kalihim 🍰','pan-de-ube':'Pan de Ube 💜','pan-de-regla':'Pan de Regla 🔴','pan-de-leche':'Pan de Leche 🥛','pianono':'Pianono 🌀','ensaymada':'Ensaymada 🥯','mamon':'Mamon 🧁','biscocho':'Biscocho 🍞','broas':'Broas 🪄','hopia':'Hopia 🥮','hopiang-baboy':'Hopiang Baboy 🐷','inipit':'Inipit 🍰','pinagong':'Pinagong 🐢','bread-pudding':'Bread Pudding 🍮','egg-pie':'Egg Pie 🥧','siopao':'Siopao ⬜','tasty-bread':'Tasty Bread 🍞','mamon-tostado':'Mamon Tostado 🟡','buko-pie':'Buko Pie 🥥','croissant':'Croissant 🥐','danish-pastry':'Danish Pastry 🌀','pain-au-chocolat':'Pain au Chocolat 🍫','cinnamon-roll':'Cinnamon Roll 🌪️'
+};
+
+// Populate bread type dropdown
+function populateBreadTypeDropdown() {
+  const sel = document.getElementById('prod-bread-key');
+  sel.innerHTML = '<option value="">Select bread type</option>' +
+    Object.entries(breadTypes).map(([k,v]) => `<option value="${k}">${v}</option>`).join('');
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { window.location.href = 'owner-login.html'; return; }
+  currentUser = user;
+  bakeryId = user.uid;
+  showLoading('Loading your dashboard...');
+  try {
+    const doc = await db.collection('bakeries').doc(bakeryId).get();
+    if (!doc.exists) { window.location.href = 'owner-login.html'; return; }
+    bakeryData = doc.data();
+    if (!bakeryData.subscriptionActive) { window.location.href = 'owner-login.html'; return; }
+    hideLoading();
+    renderDashboard();
+  } catch(e) { hideLoading(); showToast('Error loading dashboard.'); }
+});
+
+function handleLogout() {
+  if (confirm('Are you sure you want to log out?')) {
+    auth.signOut().then(() => window.location.href = 'owner-login.html');
+  }
+}
+
+// ============================================================
+// RENDER DASHBOARD
+// ============================================================
+async function renderDashboard() {
+  document.getElementById('dash-bakery-name').textContent = bakeryData.bakeryName || 'My Bakery';
+  document.getElementById('sub-status-text').textContent = 'Active Subscription · ₱99/mo';
+  // Load products
+  await loadProducts();
+  // Load feedback
+  await loadRecentFeedback();
+  // Fill profile form
+  fillProfileForm();
+}
+
+async function loadProducts() {
+  try {
+    const snap = await db.collection('bakeries').doc(bakeryId).collection('products').get();
+    allProducts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    document.getElementById('stat-products').textContent = allProducts.length;
+    renderProductList('overview-product-list', allProducts.slice(0, 3));
+    renderProductList('full-product-list', allProducts);
+  } catch(e) {}
+}
+
+function renderProductList(containerId, products) {
+  const container = document.getElementById(containerId);
+  if (!products.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🥯</div>No products yet. Add your first product!</div>';
+    return;
+  }
+  container.innerHTML = products.map(p => `
+    <div class="product-list-item">
+      <div class="product-active-bar ${p.active !== false ? 'active' : ''}"></div>
+      <div class="product-list-header">
+        <div class="product-list-emoji">${p.emoji || breadTypes[p.breadKey]?.slice(-2) || '🍞'}</div>
+        <div class="product-list-info">
+          <div class="product-list-name">${p.name}</div>
+          <div class="product-list-shelf">${breadTypes[p.breadKey] || p.breadKey} ${p.price ? '· ₱'+p.price : ''} ${p.active === false ? '· <span style="color:#DC2626;">Hidden</span>' : '· <span style="color:#2D6A4F;">Active</span>'}</div>
+        </div>
+        <div class="product-list-actions">
+          <button class="product-action-btn" onclick="openQRModal('${p.id}','${p.name}')">📱 QR</button>
+          <button class="product-action-btn" onclick="openEditProduct('${p.id}')">✏️</button>
+          <button class="product-action-btn danger" onclick="deleteProduct('${p.id}','${p.name}')">🗑️</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function loadRecentFeedback() {
+  try {
+    let allFeedback = [];
+    for (const product of allProducts) {
+      const snap = await db.collection('bakeries').doc(bakeryId).collection('products').doc(product.id).collection('feedback').orderBy('timestamp','desc').limit(5).get();
+      snap.docs.forEach(d => allFeedback.push({ ...d.data(), productName: product.name, productId: product.id }));
+    }
+    allFeedback.sort((a,b) => (b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
+    const total = allFeedback.length;
+    document.getElementById('stat-feedback').textContent = total;
+    if (total > 0) {
+      const avg = (allFeedback.reduce((s,f) => s+(f.rating||0), 0) / total).toFixed(1);
+      document.getElementById('stat-rating').textContent = avg + '⭐';
+    }
+    const recentEl = document.getElementById('recent-feedback-list');
+    const allEl = document.getElementById('all-feedback-list');
+    if (!allFeedback.length) {
+      recentEl.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div>No feedback yet.</div>';
+      allEl.innerHTML = '<div class="empty-state"><div class="empty-icon">⭐</div>No feedback yet.</div>';
+      return;
+    }
+    const feedbackHTML = (items) => items.map(f => {
+      const stars = '★'.repeat(f.rating||0)+'☆'.repeat(5-(f.rating||0));
+      const date = f.timestamp?.toDate?.()?.toLocaleDateString('en-PH') || 'Recent';
+      return `<div class="feedback-preview"><div class="feedback-product">${f.productName}</div><div class="feedback-stars">${stars}</div>${f.text?`<div class="feedback-text">${f.text}</div>`:''}<div class="feedback-meta">${date}</div></div>`;
+    }).join('');
+    recentEl.innerHTML = feedbackHTML(allFeedback.slice(0, 3));
+    allEl.innerHTML = feedbackHTML(allFeedback);
+  } catch(e) {}
+}
+
+// ============================================================
+// PRODUCTS
+// ============================================================
+function openAddProduct() {
+  document.getElementById('product-modal-title').textContent = '➕ Add New Product';
+  document.getElementById('editing-product-id').value = '';
+  document.getElementById('prod-name').value = '';
+  document.getElementById('prod-bread-key').value = '';
+  document.getElementById('prod-price').value = '';
+  document.getElementById('prod-emoji').value = '';
+  document.getElementById('prod-storage').value = 'Counter / Pantry';
+  document.getElementById('prod-ingredients').value = '';
+  document.getElementById('prod-description').value = '';
+  document.getElementById('prod-active').checked = true;
+  document.getElementById('save-product-btn').textContent = 'Save Product';
+  document.getElementById('product-modal').classList.add('visible');
+}
+
+function openEditProduct(productId) {
+  const p = allProducts.find(p => p.id === productId);
+  if (!p) return;
+  document.getElementById('product-modal-title').textContent = '✏️ Edit Product';
+  document.getElementById('editing-product-id').value = productId;
+  document.getElementById('prod-name').value = p.name || '';
+  document.getElementById('prod-bread-key').value = p.breadKey || '';
+  document.getElementById('prod-price').value = p.price || '';
+  document.getElementById('prod-emoji').value = p.emoji || '';
+  document.getElementById('prod-storage').value = p.storage || 'Counter / Pantry';
+  document.getElementById('prod-ingredients').value = p.ingredients || '';
+  document.getElementById('prod-description').value = p.description || '';
+  document.getElementById('prod-active').checked = p.active !== false;
+  document.getElementById('save-product-btn').textContent = 'Update Product';
+  document.getElementById('product-modal').classList.add('visible');
+}
+
+function closeProductModal() { document.getElementById('product-modal').classList.remove('visible'); }
+
+async function saveProduct() {
+  const name = document.getElementById('prod-name').value.trim();
+  const breadKey = document.getElementById('prod-bread-key').value;
+  if (!name || !breadKey) { showToast('⚠️ Product name and bread type are required.'); return; }
+  const btn = document.getElementById('save-product-btn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  const editingId = document.getElementById('editing-product-id').value;
+  const productData = {
+    name, breadKey,
+    price: document.getElementById('prod-price').value || '',
+    emoji: document.getElementById('prod-emoji').value || '',
+    storage: document.getElementById('prod-storage').value,
+    ingredients: document.getElementById('prod-ingredients').value.trim(),
+    description: document.getElementById('prod-description').value.trim(),
+    active: document.getElementById('prod-active').checked,
+    freshScore: 85,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  };
+  try {
+    if (editingId) {
+      await db.collection('bakeries').doc(bakeryId).collection('products').doc(editingId).update(productData);
+      showToast('✓ Product updated!');
+    } else {
+      productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('bakeries').doc(bakeryId).collection('products').add(productData);
+      showToast('✓ Product added!');
+    }
+    closeProductModal();
+    await loadProducts();
+  } catch(e) { showToast('Error saving product. Please try again.'); }
+  btn.disabled = false; btn.textContent = editingId ? 'Update Product' : 'Save Product';
+}
+
+async function deleteProduct(productId, productName) {
+  if (!confirm(`Delete "${productName}"? This cannot be undone.`)) return;
+  try {
+    await db.collection('bakeries').doc(bakeryId).collection('products').doc(productId).delete();
+    showToast('✓ Product deleted.');
+    await loadProducts();
+  } catch(e) { showToast('Error deleting product.'); }
+}
+
+// ============================================================
+// QR CODE
+// ============================================================
+let currentQRProductId = null;
+let currentQRProductName = null;
+let qrInstance = null;
+
+function openQRModal(productId, productName) {
+  currentQRProductId = productId;
+  currentQRProductName = productName;
+  document.getElementById('qr-product-name').textContent = productName;
+  document.getElementById('qr-bakery-name').textContent = bakeryData.bakeryName || 'BreadWatch Partner';
+  const qrDisplay = document.getElementById('qr-display');
+  qrDisplay.innerHTML = '';
+  // QR URL format: customer lands on product page via URL params
+  const qrUrl = `${SITE_URL}/index.html?product=${productId}&bakery=${bakeryId}`;
+  try {
+    qrInstance = new QRCode(qrDisplay, {
+      text: qrUrl,
+      width: 200, height: 200,
+      colorDark: '#4A2209', colorLight: '#FFFFFF',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  } catch(e) {
+    qrDisplay.innerHTML = `<div style="font-size:.78rem;color:var(--text-muted);text-align:center;padding:1rem;">QR URL:<br><code style="font-size:.65rem;word-break:break-all;">${qrUrl}</code></div>`;
+  }
+  document.getElementById('qr-modal').classList.add('visible');
+}
+
+function closeQRModal() { document.getElementById('qr-modal').classList.remove('visible'); }
+
+function downloadQR() {
+  const canvas = document.querySelector('#qr-display canvas');
+  if (!canvas) { showToast('QR code not ready yet.'); return; }
+  const link = document.createElement('a');
+  link.download = `${currentQRProductName || 'product'}-qr.png`;
+  link.href = canvas.toDataURL();
+  link.click();
+  showToast('✓ QR code downloaded!');
+}
+
+function shareQR() {
+  const url = `${SITE_URL}/index.html?product=${currentQRProductId}&bakery=${bakeryId}`;
+  if (navigator.share) {
+    navigator.share({ title: currentQRProductName + ' — BreadWatch', text: 'Scan to check freshness info for ' + currentQRProductName, url });
+  } else {
+    navigator.clipboard?.writeText(url).then(() => showToast('✓ Link copied to clipboard!'));
+  }
+}
+
+// ============================================================
+// PROFILE
+// ============================================================
+function fillProfileForm() {
+  if (!bakeryData) return;
+  document.getElementById('prof-name').value = bakeryData.bakeryName || '';
+  document.getElementById('prof-tagline').value = bakeryData.tagline || '';
+  document.getElementById('prof-description').value = bakeryData.description || '';
+  document.getElementById('prof-address').value = bakeryData.address || '';
+  document.getElementById('prof-phone').value = bakeryData.phone || '';
+  document.getElementById('prof-announcement').value = bakeryData.announcement || '';
+  document.getElementById('prof-emoji').value = bakeryData.logoEmoji || '🏪';
+  document.getElementById('prof-theme').value = bakeryData.themeColor || '#4A2209';
+}
+
+async function saveProfile() {
+  const updates = {
+    bakeryName: document.getElementById('prof-name').value.trim(),
+    tagline: document.getElementById('prof-tagline').value.trim(),
+    description: document.getElementById('prof-description').value.trim(),
+    address: document.getElementById('prof-address').value.trim(),
+    phone: document.getElementById('prof-phone').value.trim(),
+    announcement: document.getElementById('prof-announcement').value.trim(),
+    logoEmoji: document.getElementById('prof-emoji').value.trim() || '🏪',
+    themeColor: document.getElementById('prof-theme').value,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  };
+  if (!updates.bakeryName) { showToast('⚠️ Bakery name is required.'); return; }
+  try {
+    await db.collection('bakeries').doc(bakeryId).update(updates);
+    bakeryData = { ...bakeryData, ...updates };
+    document.getElementById('dash-bakery-name').textContent = updates.bakeryName;
+    showToast('✓ Profile saved!');
+  } catch(e) { showToast('Error saving profile.'); }
+}
+
+function showRenewalInfo() {
+  const el = document.getElementById('renewal-info');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showSection(s) {
+  document.querySelectorAll('.nav-item').forEach((n,i) => n.classList.toggle('active', ['overview','products','feedback','profile'][i] === s));
+  document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+  const t = document.getElementById('page-' + s);
+  if (t) { t.classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function showLoading(msg) { document.getElementById('loading-text').textContent = msg||'Loading...'; document.getElementById('loading-overlay').classList.add('visible'); }
+function hideLoading() { document.getElementById('loading-overlay').classList.remove('visible'); }
+let toastTimer;
+function showToast(msg) { const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3000); }
+
+// Init
+populateBreadTypeDropdown();
+</script>
+</body>
+</html>
