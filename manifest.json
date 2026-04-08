@@ -29,14 +29,14 @@
       "name": "Scan Bread",
       "short_name": "Scan",
       "description": "Quickly scan your bread",
-      "url": "/index.html?action=scan",
+      "url": "/BreadWatch2003/index.html?action=scan",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Manual Input",
       "short_name": "Manual",
       "description": "Enter bread details manually",
-      "url": "/index.html?action=manual",
+      "url": "/BreadWatch2003/index.html?action=manual",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     }
   ]
