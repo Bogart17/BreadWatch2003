@@ -148,6 +148,25 @@ textarea.form-input{resize:none;height:70px;}
 .toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:white;border-radius:50%;transition:.3s;}
 .toggle input:checked+.toggle-slider{background:var(--crust);}
 .toggle input:checked+.toggle-slider::before{transform:translateX(20px);}
+
+/* EMOJI PICKER */
+.emoji-picker-wrap{position:relative;}
+.emoji-selected-display{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--warm-white);cursor:pointer;display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--text-dark);}
+.emoji-selected-display:hover{border-color:var(--crust);}
+.emoji-grid-overlay{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border:1.5px solid var(--border);border-radius:14px;padding:10px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.12);max-height:220px;overflow-y:auto;}
+.emoji-grid-overlay.open{display:block;}
+.emoji-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;}
+.emoji-opt{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.35rem;cursor:pointer;transition:background .15s;border:2px solid transparent;}
+.emoji-opt:hover{background:var(--wheat-pale);}
+.emoji-opt.selected{border-color:var(--crust);background:var(--wheat-pale);}
+.emoji-category-lbl{font-size:.62rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;padding:4px 2px 2px;grid-column:1/-1;}
+/* EXTRA PRODUCT SETTINGS */
+.product-extra-section{border-top:1.5px solid var(--wheat-pale);margin-top:10px;padding-top:10px;}
+.product-extra-title{font-size:.68rem;font-weight:700;color:var(--crust);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px;}
+.freshness-slider-wrap{display:flex;align-items:center;gap:10px;}
+.freshness-slider{flex:1;-webkit-appearance:none;height:6px;border-radius:50px;background:linear-gradient(to right,#2D6A4F,#D97706,#DC2626);outline:none;}
+.freshness-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--crust-dark);cursor:pointer;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.freshness-val{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--crust-dark);min-width:38px;text-align:right;}
 </style>
 </head>
 <body>
@@ -158,7 +177,7 @@ textarea.form-input{resize:none;height:70px;}
 <div class="modal-overlay" id="qr-modal">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">📦 Product QR Code</div>
+      <div class="modal-title" id="d-qr-modal-title">📦 Product QR Code</div>
       <button class="modal-close" onclick="closeQRModal()">✕</button>
     </div>
     <div class="modal-body">
@@ -188,46 +207,73 @@ textarea.form-input{resize:none;height:70px;}
     <div class="modal-body">
       <input type="hidden" id="editing-product-id">
       <div class="form-group">
-        <label class="form-label">Product Name *</label>
+        <label class="form-label" id="d-lbl-prod-name">Product Name *</label>
         <input class="form-input" type="text" id="prod-name" placeholder="e.g. Classic Pandesal">
       </div>
       <div class="form-group">
-        <label class="form-label">Bread Type *</label>
-        <select class="form-input" id="prod-bread-key">
-          <option value="">Select bread type</option>
-        </select>
+        <label class="form-label" id="d-lbl-bread-type">Bread Type *</label>
+        <select class="form-input" id="prod-bread-key"><option value="">Select bread type</option></select>
+      </div>
+      <!-- EMOJI PICKER -->
+      <div class="form-group">
+        <label class="form-label" id="d-lbl-emoji">Product Emoji / Icon</label>
+        <div class="emoji-picker-wrap">
+          <div class="emoji-selected-display" onclick="toggleEmojiPicker()" id="emoji-display">
+            <span id="emoji-preview" style="font-size:1.4rem;">🥯</span>
+            <span id="emoji-display-text" style="font-size:.82rem;color:var(--text-muted);">Tap to choose emoji</span>
+          </div>
+          <div class="emoji-grid-overlay" id="emoji-overlay">
+            <div class="emoji-grid" id="emoji-grid"></div>
+          </div>
+        </div>
+        <input type="hidden" id="prod-emoji" value="🥯">
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Price (₱)</label>
+          <label class="form-label" id="d-lbl-price">Price (₱)</label>
           <input class="form-input" type="number" id="prod-price" placeholder="5" min="0">
         </div>
         <div class="form-group">
-          <label class="form-label">Emoji Icon</label>
-          <input class="form-input" type="text" id="prod-emoji" placeholder="🥯" maxlength="4">
+          <label class="form-label" id="d-lbl-storage">Storage</label>
+          <select class="form-input" id="prod-storage">
+            <option value="Counter / Pantry">Counter / Pantry</option>
+            <option value="Bread Box / Bilao">Bread Box / Bilao</option>
+            <option value="Plastic Bag">Plastic Bag (sealed)</option>
+            <option value="Paper Bag">Paper Bag / Bayong</option>
+            <option value="Refrigerator">Refrigerator</option>
+            <option value="Freezer">Freezer</option>
+            <option value="Airtight Container">Airtight Container</option>
+          </select>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Storage Instructions</label>
-        <select class="form-input" id="prod-storage">
-          <option value="Counter / Pantry">Counter / Pantry</option>
-          <option value="Refrigerator">Refrigerator</option>
-          <option value="Freezer">Freezer</option>
-          <option value="Airtight Container">Airtight Container</option>
-        </select>
+      <!-- FRESHNESS SCORE SLIDER -->
+      <div class="product-extra-section">
+        <div class="product-extra-title" id="d-lbl-freshness-section">📊 Current Freshness Score</div>
+        <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:8px;" id="d-lbl-freshness-hint">Set the freshness score customers will see on your product page</div>
+        <div class="freshness-slider-wrap">
+          <input type="range" class="freshness-slider" id="prod-fresh-score" min="0" max="100" value="85" oninput="updateFreshnessVal(this.value)">
+          <div class="freshness-val" id="prod-fresh-val">85%</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.64rem;color:var(--text-muted);margin-top:3px;">
+          <span>Expired</span><span>Caution</span><span>Good</span><span>Fresh</span>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Ingredients (optional)</label>
+      <div class="form-group" style="margin-top:10px;">
+        <label class="form-label" id="d-lbl-ingredients">Ingredients (optional)</label>
         <input class="form-input" type="text" id="prod-ingredients" placeholder="Flour, sugar, eggs, butter...">
       </div>
       <div class="form-group">
-        <label class="form-label">Product Description (optional)</label>
+        <label class="form-label" id="d-lbl-allergens">Allergens (optional)</label>
+        <input class="form-input" type="text" id="prod-allergens" placeholder="e.g. Gluten, Dairy, Eggs">
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="d-lbl-description">Product Description (optional)</label>
         <textarea class="form-input" id="prod-description" placeholder="Tell customers about this product..."></textarea>
       </div>
-      <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;padding:.65rem 0;">
         <div>
-          <div class="form-label" style="margin-bottom:0;">Active / Visible</div>
-          <div style="font-size:.7rem;color:var(--text-muted);">Show on your storefront</div>
+          <div class="form-label" id="d-lbl-active" style="margin-bottom:0;">Active / Visible on Storefront</div>
+          <div style="font-size:.7rem;color:var(--text-muted);" id="d-lbl-active-desc">Customers can see and scan this product</div>
         </div>
         <label class="toggle"><input type="checkbox" id="prod-active" checked><span class="toggle-slider"></span></label>
       </div>
@@ -239,8 +285,12 @@ textarea.form-input{resize:none;height:70px;}
 <div class="dash-header">
   <div class="dash-logo">🍞 BreadWatch <span>Bakery Dashboard</span></div>
   <div class="dash-actions">
-    <a href="index.html" class="dash-btn" style="text-decoration:none;">👁️ View Store</a>
-    <button class="dash-btn danger" onclick="handleLogout()">Log Out</button>
+    <div style="display:flex;background:rgba(255,255,255,.08);border:1px solid rgba(244,208,138,.25);border-radius:50px;overflow:hidden;margin-right:4px;">
+      <button id="dlang-en" onclick="setDashLang('en')" style="padding:4px 12px;font-size:.7rem;font-weight:600;color:var(--wheat-light);background:var(--wheat);color:var(--crust-dark);border:none;cursor:pointer;font-family:'DM Sans',sans-serif;border-radius:50px;">EN</button>
+      <button id="dlang-fil" onclick="setDashLang('fil')" style="padding:4px 12px;font-size:.7rem;font-weight:600;color:rgba(240,208,138,.6);background:transparent;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;">FIL</button>
+    </div>
+    <a href="index.html" class="dash-btn" style="text-decoration:none;" id="d-btn-view-store">👁️ View Store</a>
+    <button class="dash-btn danger" onclick="handleLogout()" id="d-btn-logout">Log Out</button>
   </div>
 </div>
 
@@ -249,14 +299,14 @@ textarea.form-input{resize:none;height:70px;}
 <!-- OVERVIEW -->
 <div class="page-section active" id="page-overview">
   <div class="overview-hero">
-    <div class="bakery-greeting">Good day, bakery owner!</div>
+    <div class="bakery-greeting" id="dash-greeting">Good day, bakery owner!</div>
     <div class="bakery-name" id="dash-bakery-name">Loading...</div>
     <div class="sub-status"><div class="sub-dot"></div><span id="sub-status-text">Active Subscription</span></div>
   </div>
   <div class="stats-row">
-    <div class="stat-card"><div class="stat-num" id="stat-products">0</div><div class="stat-lbl">Products</div></div>
-    <div class="stat-card"><div class="stat-num" id="stat-feedback">0</div><div class="stat-lbl">Reviews</div></div>
-    <div class="stat-card"><div class="stat-num" id="stat-rating">—</div><div class="stat-lbl">Avg Rating</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-products">0</div><div class="stat-lbl" id="el-stat-products-lbl">Products</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-feedback">0</div><div class="stat-lbl" id="el-stat-feedback-lbl">Reviews</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-rating">—</div><div class="stat-lbl" id="el-stat-rating-lbl">Avg Rating</div></div>
   </div>
   <section>
     <div class="section-title">
@@ -268,7 +318,7 @@ textarea.form-input{resize:none;height:70px;}
   </section>
   <section>
     <div class="section-title">
-      <div class="section-title-left"><span>🍞</span> Your Products</div>
+      <div class="section-title-left"><span>🍞</span> <span id="el-section-products">Your Products</span></div>
       <button class="btn-add-product" style="width:auto;padding:8px 16px;font-size:.78rem;" onclick="openAddProduct()">+ Add</button>
     </div>
     <div id="overview-product-list">
@@ -280,8 +330,8 @@ textarea.form-input{resize:none;height:70px;}
 <!-- PRODUCTS -->
 <div class="page-section" id="page-products">
   <div style="background:linear-gradient(135deg,var(--crust-dark),var(--crust));padding:1.25rem 1.25rem 1.5rem;">
-    <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--wheat-light);font-weight:700;">My Products</div>
-    <div style="font-size:.8rem;color:rgba(240,208,138,.7);margin-top:2px;">Manage your bread listings and QR codes</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--wheat-light);font-weight:700;" id="el-page-products-title">My Products</div>
+    <div style="font-size:.8rem;color:rgba(240,208,138,.7);margin-top:2px;" id="el-page-products-sub">Manage your bread listings and QR codes</div>
   </div>
   <section>
     <button class="btn-add-product" onclick="openAddProduct()">➕ Add New Product</button>
@@ -295,8 +345,8 @@ textarea.form-input{resize:none;height:70px;}
 <!-- FEEDBACK -->
 <div class="page-section" id="page-feedback">
   <div style="background:linear-gradient(135deg,#14532D,#15803D);padding:1.25rem 1.25rem 1.5rem;">
-    <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#D1FAE5;font-weight:700;">Customer Feedback</div>
-    <div style="font-size:.8rem;color:rgba(209,250,229,.7);margin-top:2px;">See what your customers are saying</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#D1FAE5;font-weight:700;" id="el-page-feedback-title">Customer Feedback</div>
+    <div style="font-size:.8rem;color:rgba(209,250,229,.7);margin-top:2px;" id="el-page-feedback-sub">See what your customers are saying</div>
   </div>
   <section>
     <div id="all-feedback-list">
@@ -308,63 +358,63 @@ textarea.form-input{resize:none;height:70px;}
 <!-- PROFILE / STOREFRONT -->
 <div class="page-section" id="page-profile">
   <div style="background:linear-gradient(135deg,#1E1B4B,#312E81);padding:1.25rem 1.25rem 1.5rem;">
-    <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#E0E7FF;font-weight:700;">Bakery Profile</div>
-    <div style="font-size:.8rem;color:rgba(224,231,255,.65);margin-top:2px;">Customize your storefront appearance</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#E0E7FF;font-weight:700;" id="el-page-profile-title">Bakery Profile</div>
+    <div style="font-size:.8rem;color:rgba(224,231,255,.65);margin-top:2px;" id="el-page-profile-sub">Customize your storefront appearance</div>
   </div>
   <section>
     <!-- SUBSCRIPTION STATUS -->
     <div class="sub-card">
-      <div class="sub-card-title">✨ Active Subscription</div>
-      <div class="sub-card-price">₱99 / month · Full access · No restrictions</div>
-      <button class="sub-renew-btn" onclick="showRenewalInfo()">🔄 Renew / Extend</button>
+      <div class="sub-card-title" id="el-sub-title">✨ Active Subscription</div>
+      <div class="sub-card-price" id="el-sub-price">₱99 / month · Full access · No restrictions</div>
+      <button class="sub-renew-btn" onclick="showRenewalInfo()" id="el-btn-renew">🔄 Renew / Extend</button>
     </div>
     <div id="renewal-info" style="display:none;margin-bottom:12px;">
       <div class="gcash-box">
-        <div style="font-size:.72rem;font-weight:700;color:var(--crust-dark);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.65rem;">💚 Renew via GCash</div>
+        <div style="font-size:.72rem;font-weight:700;color:var(--crust-dark);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.65rem;" id="el-gcash-send-title">💚 Renew via GCash</div>
         <div class="gcash-num">0992-887-1828</div>
         <div class="gcash-name">BreadWatch Platform</div>
         <div class="gcash-amt">₱99 / month</div>
-        <div style="font-size:.72rem;color:var(--text-muted);margin-top:.65rem;line-height:1.4;">Send payment with your bakery name and email. We will extend your subscription within 24 hours.</div>
+        <div style="font-size:.72rem;color:var(--text-muted);margin-top:.65rem;line-height:1.4;" id="el-renewal-hint">Send payment with your bakery name and email. We will extend your subscription within 24 hours.</div>
       </div>
     </div>
 
     <!-- PROFILE FORM -->
     <div class="profile-section">
-      <div class="profile-section-title">🏪 Bakery Information</div>
+      <div class="profile-section-title" id="el-prof-sec-info">🏪 Bakery Information</div>
       <div class="profile-input-row">
-        <label class="form-label">Bakery Name</label>
+        <label class="form-label" id="el-prof-lbl-name">Bakery Name</label>
         <input class="form-input" type="text" id="prof-name" placeholder="Your bakery name">
       </div>
       <div class="profile-input-row">
-        <label class="form-label">Tagline / Slogan</label>
+        <label class="form-label" id="el-prof-lbl-tagline">Tagline / Slogan</label>
         <input class="form-input" type="text" id="prof-tagline" placeholder="e.g. Fresh from the oven daily">
       </div>
       <div class="profile-input-row">
-        <label class="form-label">About / Description</label>
+        <label class="form-label" id="el-prof-lbl-desc">About / Description</label>
         <textarea class="form-input" id="prof-description" placeholder="Tell customers about your bakery..."></textarea>
       </div>
       <div class="profile-input-row">
-        <label class="form-label">Address / Location</label>
+        <label class="form-label" id="el-prof-lbl-address">Address / Location</label>
         <input class="form-input" type="text" id="prof-address" placeholder="Full address">
       </div>
       <div class="profile-input-row">
-        <label class="form-label">Contact Number</label>
+        <label class="form-label" id="el-prof-lbl-phone">Contact Number</label>
         <input class="form-input" type="text" id="prof-phone" placeholder="09XXXXXXXXX">
       </div>
       <div class="profile-input-row">
-        <label class="form-label">Announcement (shows banner on your store)</label>
+        <label class="form-label" id="el-prof-lbl-announcement">Announcement (shows banner on your store)</label>
         <input class="form-input" type="text" id="prof-announcement" placeholder="e.g. Open daily 5AM–10PM!">
       </div>
       <div class="profile-input-row">
-        <label class="form-label">Logo Emoji</label>
+        <label class="form-label" id="el-prof-lbl-emoji">Logo Emoji</label>
         <input class="form-input" type="text" id="prof-emoji" placeholder="🏪" maxlength="4">
       </div>
       <div class="profile-input-row">
-        <label class="form-label">Theme Color (header color)</label>
+        <label class="form-label" id="el-prof-lbl-theme">Theme Color (header color)</label>
         <input class="form-input" type="color" id="prof-theme" value="#4A2209">
       </div>
       <div class="profile-input-row">
-        <button class="profile-save-btn" onclick="saveProfile()">💾 Save Profile</button>
+        <button class="profile-save-btn" onclick="saveProfile()" id="el-prof-save-btn">💾 Save Profile</button>
       </div>
     </div>
   </section>
@@ -373,10 +423,10 @@ textarea.form-input{resize:none;height:70px;}
 </main>
 
 <div class="bottom-nav">
-  <div class="nav-item active" onclick="showSection('overview')"><div class="nav-icon">🏠</div><div class="nav-label">Overview</div></div>
-  <div class="nav-item" onclick="showSection('products')"><div class="nav-icon">🍞</div><div class="nav-label">Products</div></div>
-  <div class="nav-item" onclick="showSection('feedback')"><div class="nav-icon">💬</div><div class="nav-label">Feedback</div></div>
-  <div class="nav-item" onclick="showSection('profile')"><div class="nav-icon">⚙️</div><div class="nav-label">Profile</div></div>
+  <div class="nav-item active" onclick="showSection('overview')"><div class="nav-icon">🏠</div><div class="nav-label" id="el-nav-overview">Overview</div></div>
+  <div class="nav-item" onclick="showSection('products')"><div class="nav-icon">🍞</div><div class="nav-label" id="el-nav-products">Products</div></div>
+  <div class="nav-item" onclick="showSection('feedback')"><div class="nav-icon">💬</div><div class="nav-label" id="el-nav-feedback">Feedback</div></div>
+  <div class="nav-item" onclick="showSection('profile')"><div class="nav-icon">⚙️</div><div class="nav-label" id="el-nav-profile">Profile</div></div>
 </div>
 
 <script>
@@ -429,7 +479,7 @@ auth.onAuthStateChanged(async (user) => {
 });
 
 function handleLogout() {
-  if (confirm('Are you sure you want to log out?')) {
+  if (confirm(ds('confirm-logout'))) {
     auth.signOut().then(() => window.location.href = 'owner-login.html');
   }
 }
@@ -519,7 +569,7 @@ async function loadRecentFeedback() {
 function openAddProduct() {
   document.getElementById('product-modal-title').textContent = '➕ Add New Product';
   document.getElementById('editing-product-id').value = '';
-  document.getElementById('prod-name').value = '';
+  document.getElementById('prod-name').value = ''; selectedEmoji = '🥯'; if(document.getElementById('emoji-preview')) { document.getElementById('emoji-preview').textContent = '🥯'; document.getElementById('prod-emoji').value = '🥯'; } if(document.getElementById('prod-fresh-score')) { document.getElementById('prod-fresh-score').value = 85; updateFreshnessVal(85); } if(document.getElementById('prod-allergens')) document.getElementById('prod-allergens').value = '';
   document.getElementById('prod-bread-key').value = '';
   document.getElementById('prod-price').value = '';
   document.getElementById('prod-emoji').value = '';
@@ -527,7 +577,7 @@ function openAddProduct() {
   document.getElementById('prod-ingredients').value = '';
   document.getElementById('prod-description').value = '';
   document.getElementById('prod-active').checked = true;
-  document.getElementById('save-product-btn').textContent = 'Save Product';
+  document.getElementById('save-product-btn').textContent = ds('save-product-btn');
   document.getElementById('product-modal').classList.add('visible');
 }
 
@@ -539,12 +589,16 @@ function openEditProduct(productId) {
   document.getElementById('prod-name').value = p.name || '';
   document.getElementById('prod-bread-key').value = p.breadKey || '';
   document.getElementById('prod-price').value = p.price || '';
-  document.getElementById('prod-emoji').value = p.emoji || '';
+  selectedEmoji = p.emoji || '🥯';
+  document.getElementById('prod-emoji').value = selectedEmoji;
+  document.getElementById('emoji-preview').textContent = selectedEmoji;
+  if(document.getElementById('prod-fresh-score')) { document.getElementById('prod-fresh-score').value = p.freshScore || 85; updateFreshnessVal(p.freshScore || 85); }
+  if(document.getElementById('prod-allergens')) document.getElementById('prod-allergens').value = p.allergens || '';
   document.getElementById('prod-storage').value = p.storage || 'Counter / Pantry';
   document.getElementById('prod-ingredients').value = p.ingredients || '';
   document.getElementById('prod-description').value = p.description || '';
   document.getElementById('prod-active').checked = p.active !== false;
-  document.getElementById('save-product-btn').textContent = 'Update Product';
+  document.getElementById('save-product-btn').textContent = ds('save-product-btn-edit');
   document.getElementById('product-modal').classList.add('visible');
 }
 
@@ -553,29 +607,30 @@ function closeProductModal() { document.getElementById('product-modal').classLis
 async function saveProduct() {
   const name = document.getElementById('prod-name').value.trim();
   const breadKey = document.getElementById('prod-bread-key').value;
-  if (!name || !breadKey) { showToast('⚠️ Product name and bread type are required.'); return; }
+  if (!name || !breadKey) { showToast(ds('err-required')); return; }
   const btn = document.getElementById('save-product-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
   const editingId = document.getElementById('editing-product-id').value;
   const productData = {
     name, breadKey,
     price: document.getElementById('prod-price').value || '',
-    emoji: document.getElementById('prod-emoji').value || '',
+    emoji: document.getElementById('prod-emoji').value || selectedEmoji || '🥯',
     storage: document.getElementById('prod-storage').value,
     ingredients: document.getElementById('prod-ingredients').value.trim(),
+    allergens: document.getElementById('prod-allergens')?.value.trim() || '',
     description: document.getElementById('prod-description').value.trim(),
     active: document.getElementById('prod-active').checked,
-    freshScore: 85,
+    freshScore: parseInt(document.getElementById('prod-fresh-score')?.value || 85),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
   };
   try {
     if (editingId) {
       await db.collection('bakeries').doc(bakeryId).collection('products').doc(editingId).update(productData);
-      showToast('✓ Product updated!');
+      showToast(ds('toast-product-updated'));
     } else {
       productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
       await db.collection('bakeries').doc(bakeryId).collection('products').add(productData);
-      showToast('✓ Product added!');
+      showToast(ds('toast-product-saved'));
     }
     closeProductModal();
     await loadProducts();
@@ -584,10 +639,10 @@ async function saveProduct() {
 }
 
 async function deleteProduct(productId, productName) {
-  if (!confirm(`Delete "${productName}"? This cannot be undone.`)) return;
+  if (!confirm(ds('confirm-delete'))) return;
   try {
     await db.collection('bakeries').doc(bakeryId).collection('products').doc(productId).delete();
-    showToast('✓ Product deleted.');
+    showToast(ds('toast-product-deleted'));
     await loadProducts();
   } catch(e) { showToast('Error deleting product.'); }
 }
@@ -630,7 +685,7 @@ function downloadQR() {
   link.download = `${currentQRProductName || 'product'}-qr.png`;
   link.href = canvas.toDataURL();
   link.click();
-  showToast('✓ QR code downloaded!');
+  showToast(ds('toast-qr-downloaded'));
 }
 
 function shareQR() {
@@ -638,7 +693,7 @@ function shareQR() {
   if (navigator.share) {
     navigator.share({ title: currentQRProductName + ' — BreadWatch', text: 'Scan to check freshness info for ' + currentQRProductName, url });
   } else {
-    navigator.clipboard?.writeText(url).then(() => showToast('✓ Link copied to clipboard!'));
+    navigator.clipboard?.writeText(url).then(() => showToast(ds('toast-link-copied')));
   }
 }
 
@@ -669,12 +724,12 @@ async function saveProfile() {
     themeColor: document.getElementById('prof-theme').value,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
   };
-  if (!updates.bakeryName) { showToast('⚠️ Bakery name is required.'); return; }
+  if (!updates.bakeryName) { showToast(ds('err-bakery-name')); return; }
   try {
     await db.collection('bakeries').doc(bakeryId).update(updates);
     bakeryData = { ...bakeryData, ...updates };
     document.getElementById('dash-bakery-name').textContent = updates.bakeryName;
-    showToast('✓ Profile saved!');
+    showToast(ds('toast-profile-saved'));
   } catch(e) { showToast('Error saving profile.'); }
 }
 
@@ -701,8 +756,320 @@ function hideLoading() { document.getElementById('loading-overlay').classList.re
 let toastTimer;
 function showToast(msg) { const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3000); }
 
-// Init
+
+// ============================================================
+// DASHBOARD LANGUAGE SYSTEM
+// ============================================================
+const DASH_STRINGS = {
+  en: {
+    'greeting': 'Good day, bakery owner!',
+    'sub-active': 'Active Subscription · ₱99/mo',
+    'stat-products-lbl': 'Products',
+    'stat-feedback-lbl': 'Reviews',
+    'stat-rating-lbl': 'Avg Rating',
+    'section-feedback': '💬 Recent Feedback',
+    'section-products': '🍞 Your Products',
+    'btn-add': '+ Add',
+    'btn-add-product': '➕ Add New Product',
+    'page-products-title': 'My Products',
+    'page-products-sub': 'Manage your bread listings and QR codes',
+    'page-feedback-title': 'Customer Feedback',
+    'page-feedback-sub': 'See what your customers are saying',
+    'page-profile-title': 'Bakery Profile',
+    'page-profile-sub': 'Customize your storefront appearance',
+    'empty-feedback': 'No feedback yet. Add products and generate QR codes so customers can leave reviews!',
+    'empty-products': 'No products yet. Add your first product!',
+    'nav-overview': 'Overview',
+    'nav-products': 'Products',
+    'nav-feedback': 'Feedback',
+    'nav-profile': 'Profile',
+    'btn-view-store': '👁️ View Store',
+    'btn-logout': 'Log Out',
+    // Product modal
+    'd-lbl-prod-name': 'Product Name *',
+    'd-lbl-bread-type': 'Bread Type *',
+    'd-lbl-emoji': 'Product Emoji / Icon',
+    'emoji-display-text': 'Tap to choose emoji',
+    'd-lbl-price': 'Price (₱)',
+    'd-lbl-storage': 'Storage',
+    'd-lbl-freshness-section': '📊 Current Freshness Score',
+    'd-lbl-freshness-hint': 'Set the freshness score customers will see on your product page',
+    'd-lbl-ingredients': 'Ingredients (optional)',
+    'd-lbl-allergens': 'Allergens (optional)',
+    'd-lbl-description': 'Product Description (optional)',
+    'd-lbl-active': 'Active / Visible on Storefront',
+    'd-lbl-active-desc': 'Customers can see and scan this product',
+    'save-product-btn': 'Save Product',
+    'save-product-btn-edit': 'Update Product',
+    'save-product-btn-busy': 'Saving...',
+    // QR
+    'qr-title': '📦 Product QR Code',
+    'qr-bakery-hint': 'Print and attach this QR code to your product packaging.',
+    'btn-download': '⬇️ Download',
+    'btn-share': '📤 Share',
+    // Profile labels
+    'prof-sec-info': '🏪 Bakery Information',
+    'prof-lbl-name': 'Bakery Name',
+    'prof-lbl-tagline': 'Tagline / Slogan',
+    'prof-lbl-desc': 'About / Description',
+    'prof-lbl-address': 'Address / Location',
+    'prof-lbl-phone': 'Contact Number',
+    'prof-lbl-announcement': 'Announcement Banner',
+    'prof-lbl-emoji': 'Logo Emoji',
+    'prof-lbl-theme': 'Theme Color',
+    'prof-save-btn': '💾 Save Profile',
+    // Subscription
+    'sub-title': '✨ Active Subscription',
+    'sub-price': '₱99 / month · Full access · No restrictions',
+    'btn-renew': '🔄 Renew / Extend',
+    'gcash-send-title': '💚 Renew via GCash',
+    'renewal-hint': 'Send payment with your bakery name and email. We will extend your subscription within 24 hours.',
+    // Product action buttons
+    'btn-qr': '📱 QR',
+    'btn-edit': '✏️',
+    'btn-delete': '🗑️',
+    // Toast messages
+    'toast-product-saved': '✓ Product saved!',
+    'toast-product-updated': '✓ Product updated!',
+    'toast-product-deleted': '✓ Product deleted.',
+    'toast-profile-saved': '✓ Profile saved!',
+    'toast-qr-downloaded': '✓ QR code downloaded!',
+    'toast-link-copied': '✓ Link copied to clipboard!',
+    'confirm-delete': 'Delete this product? This cannot be undone.',
+    'confirm-logout': 'Are you sure you want to log out?',
+    'err-required': '⚠️ Product name and bread type are required.',
+    'err-bakery-name': '⚠️ Bakery name is required.',
+  },
+  fil: {
+    'greeting': 'Magandang araw, may-ari ng panaderia!',
+    'sub-active': 'Aktibong Subscription · ₱99/buwan',
+    'stat-products-lbl': 'Mga Produkto',
+    'stat-feedback-lbl': 'Mga Review',
+    'stat-rating-lbl': 'Avg na Rating',
+    'section-feedback': '💬 Kamakailang Feedback',
+    'section-products': '🍞 Mga Produkto',
+    'btn-add': '+ Dagdag',
+    'btn-add-product': '➕ Magdagdag ng Produkto',
+    'page-products-title': 'Mga Produkto Ko',
+    'page-products-sub': 'Pamahalaan ang inyong mga tinapay at QR codes',
+    'page-feedback-title': 'Feedback ng Customer',
+    'page-feedback-sub': 'Tingnan kung ano ang sinasabi ng inyong mga customer',
+    'page-profile-title': 'Profile ng Panaderia',
+    'page-profile-sub': 'I-customize ang inyong storefront',
+    'empty-feedback': 'Wala pang feedback. Magdagdag ng produkto at gumawa ng QR codes para makapag-iwan ang mga customer ng review!',
+    'empty-products': 'Wala pang produkto. Magdagdag ng inyong unang produkto!',
+    'nav-overview': 'Overview',
+    'nav-products': 'Produkto',
+    'nav-feedback': 'Feedback',
+    'nav-profile': 'Profile',
+    'btn-view-store': '👁️ Tingnan ang Store',
+    'btn-logout': 'Mag-logout',
+    // Product modal
+    'd-lbl-prod-name': 'Pangalan ng Produkto *',
+    'd-lbl-bread-type': 'Uri ng Tinapay *',
+    'd-lbl-emoji': 'Emoji / Icon ng Produkto',
+    'emoji-display-text': 'Pindutin para pumili ng emoji',
+    'd-lbl-price': 'Presyo (₱)',
+    'd-lbl-storage': 'Pag-iimbak',
+    'd-lbl-freshness-section': '📊 Kasalukuyang Iskor ng Kasariwaan',
+    'd-lbl-freshness-hint': 'Itakda ang iskor ng kasariwaan na makikita ng mga customer',
+    'd-lbl-ingredients': 'Mga Sangkap (opsyonal)',
+    'd-lbl-allergens': 'Mga Allergen (opsyonal)',
+    'd-lbl-description': 'Paglalarawan ng Produkto (opsyonal)',
+    'd-lbl-active': 'Aktibo / Makikita sa Storefront',
+    'd-lbl-active-desc': 'Maaaring makita at ma-scan ng mga customer ang produktong ito',
+    'save-product-btn': 'I-save ang Produkto',
+    'save-product-btn-edit': 'I-update ang Produkto',
+    'save-product-btn-busy': 'Sine-save...',
+    // QR
+    'qr-title': '📦 QR Code ng Produkto',
+    'qr-bakery-hint': 'I-print at ikapit ang QR code na ito sa packaging ng inyong produkto.',
+    'btn-download': '⬇️ I-download',
+    'btn-share': '📤 Ibahagi',
+    // Profile labels
+    'prof-sec-info': '🏪 Impormasyon ng Panaderia',
+    'prof-lbl-name': 'Pangalan ng Panaderia',
+    'prof-lbl-tagline': 'Tagline / Slogan',
+    'prof-lbl-desc': 'Tungkol sa Panaderia',
+    'prof-lbl-address': 'Address / Lokasyon',
+    'prof-lbl-phone': 'Numero ng Telepono',
+    'prof-lbl-announcement': 'Banner ng Announcement',
+    'prof-lbl-emoji': 'Logo Emoji',
+    'prof-lbl-theme': 'Kulay ng Tema',
+    'prof-save-btn': '💾 I-save ang Profile',
+    // Subscription
+    'sub-title': '✨ Aktibong Subscription',
+    'sub-price': '₱99 / buwan · Buong access · Walang limitasyon',
+    'btn-renew': '🔄 Mag-renew / Palawigin',
+    'gcash-send-title': '💚 Mag-renew sa GCash',
+    'renewal-hint': 'Magpadala ng bayad na may pangalan ng inyong panaderia at email. I-extend namin ang inyong subscription sa loob ng 24 na oras.',
+    // Product action buttons
+    'btn-qr': '📱 QR',
+    'btn-edit': '✏️',
+    'btn-delete': '🗑️',
+    // Toast messages
+    'toast-product-saved': '✓ Na-save ang produkto!',
+    'toast-product-updated': '✓ Na-update ang produkto!',
+    'toast-product-deleted': '✓ Na-delete ang produkto.',
+    'toast-profile-saved': '✓ Na-save ang profile!',
+    'toast-qr-downloaded': '✓ Na-download ang QR code!',
+    'toast-link-copied': '✓ Nakopya ang link sa clipboard!',
+    'confirm-delete': 'I-delete ang produktong ito? Hindi ito maaaring bawiin.',
+    'confirm-logout': 'Sigurado ka bang gusto mong mag-logout?',
+    'err-required': '⚠️ Kinakailangan ang pangalan ng produkto at uri ng tinapay.',
+    'err-bakery-name': '⚠️ Kinakailangan ang pangalan ng panaderia.',
+  }
+};
+
+let _dashLang = localStorage.getItem('bw-lang') || 'en';
+
+function ds(key) {
+  return DASH_STRINGS[_dashLang]?.[key] ?? DASH_STRINGS['en']?.[key] ?? key;
+}
+
+function setDashLang(l) {
+  _dashLang = l;
+  localStorage.setItem('bw-lang', l);
+  const en = document.getElementById('dlang-en');
+  const fil = document.getElementById('dlang-fil');
+  if(en) { en.style.background = l==='en'?'var(--wheat)':'transparent'; en.style.color = l==='en'?'var(--crust-dark)':'rgba(240,208,138,.6)'; }
+  if(fil) { fil.style.background = l==='fil'?'var(--wheat)':'transparent'; fil.style.color = l==='fil'?'var(--crust-dark)':'rgba(240,208,138,.6)'; }
+  applyDashLang();
+  showToast(l === 'fil' ? '🇵🇭 Filipino na ang wika' : '🇬🇧 Switched to English');
+}
+
+function applyDashLang() {
+  const tx = (id,key) => { const el=document.getElementById(id); if(el) el.textContent=ds(key); };
+  // Header
+  tx('d-btn-view-store','btn-view-store');
+  tx('d-btn-logout','btn-logout');
+  // Greeting
+  tx('dash-greeting','greeting');
+  tx('dash-sub-status','sub-active');
+  // Stat labels
+  tx('el-stat-products-lbl','stat-products-lbl');
+  tx('el-stat-feedback-lbl','stat-feedback-lbl');
+  tx('el-stat-rating-lbl','stat-rating-lbl');
+  // Nav
+  tx('el-nav-overview','nav-overview');
+  tx('el-nav-products','nav-products');
+  tx('el-nav-feedback','nav-feedback');
+  tx('el-nav-profile','nav-profile');
+  // Section titles
+  tx('el-section-feedback','section-feedback');
+  tx('el-section-products','section-products');
+  // Pages
+  tx('el-page-products-title','page-products-title');
+  tx('el-page-products-sub','page-products-sub');
+  tx('el-page-feedback-title','page-feedback-title');
+  tx('el-page-feedback-sub','page-feedback-sub');
+  tx('el-page-profile-title','page-profile-title');
+  tx('el-page-profile-sub','page-profile-sub');
+  // Product modal
+  tx('d-lbl-prod-name','d-lbl-prod-name');
+  tx('d-lbl-bread-type','d-lbl-bread-type');
+  tx('d-lbl-emoji','d-lbl-emoji');
+  tx('emoji-display-text','emoji-display-text');
+  tx('d-lbl-price','d-lbl-price');
+  tx('d-lbl-storage','d-lbl-storage');
+  tx('d-lbl-freshness-section','d-lbl-freshness-section');
+  tx('d-lbl-freshness-hint','d-lbl-freshness-hint');
+  tx('d-lbl-ingredients','d-lbl-ingredients');
+  tx('d-lbl-allergens','d-lbl-allergens');
+  tx('d-lbl-description','d-lbl-description');
+  tx('d-lbl-active','d-lbl-active');
+  tx('d-lbl-active-desc','d-lbl-active-desc');
+  const saveBtn = document.getElementById('save-product-btn');
+  if(saveBtn && !saveBtn.disabled) {
+    const isEditing = !!document.getElementById('editing-product-id')?.value;
+    saveBtn.textContent = ds(isEditing ? 'save-product-btn-edit' : 'save-product-btn');
+  }
+  // QR modal
+  tx('d-qr-modal-title','qr-title');
+  // Profile page
+  tx('el-prof-sec-info','prof-sec-info');
+  tx('el-prof-lbl-name','prof-lbl-name');
+  tx('el-prof-lbl-tagline','prof-lbl-tagline');
+  tx('el-prof-lbl-desc','prof-lbl-desc');
+  tx('el-prof-lbl-address','prof-lbl-address');
+  tx('el-prof-lbl-phone','prof-lbl-phone');
+  tx('el-prof-lbl-announcement','prof-lbl-announcement');
+  tx('el-prof-lbl-emoji','prof-lbl-emoji');
+  tx('el-prof-lbl-theme','prof-lbl-theme');
+  tx('el-prof-save-btn','prof-save-btn');
+  // Subscription
+  tx('el-sub-title','sub-title');
+  tx('el-sub-price','sub-price');
+  tx('el-btn-renew','btn-renew');
+  tx('el-gcash-send-title','gcash-send-title');
+  tx('el-renewal-hint','renewal-hint');
+}
+
+// ============================================================
+// EMOJI PICKER
+// ============================================================
+const BREAD_EMOJIS = [
+  { cat: 'Bread & Pastry', emojis: ['🍞','🥖','🥐','🥨','🥯','🫓','🧁','🎂','🍰','🥮','🍩','🍪','🥧','🧇','🥞','🍮','🍯'] },
+  { cat: 'Filipino Food', emojis: ['🥥','🍌','🍠','🌾','🌽','🎋','🍚','🍱','🫙'] },
+  { cat: 'Colors & Symbols', emojis: ['⭐','✴️','💜','🔴','🟡','🟠','🟤','⬜','🐢','🐷','🌀','🌪️','🍫','🪄','💚','🏪'] },
+  { cat: 'Nature & Fresh', emojis: ['🌿','🌱','🌸','🌺','🍃','🌻','🌼','☘️','🍀','🌾'] },
+];
+
+let selectedEmoji = '🥯';
+
+function buildEmojiGrid() {
+  const grid = document.getElementById('emoji-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  BREAD_EMOJIS.forEach(section => {
+    const catDiv = document.createElement('div');
+    catDiv.className = 'emoji-category-lbl';
+    catDiv.textContent = section.cat;
+    grid.appendChild(catDiv);
+    section.emojis.forEach(em => {
+      const div = document.createElement('div');
+      div.className = 'emoji-opt' + (em === selectedEmoji ? ' selected' : '');
+      div.textContent = em;
+      div.onclick = () => selectEmoji(em);
+      grid.appendChild(div);
+    });
+  });
+}
+
+function selectEmoji(em) {
+  selectedEmoji = em;
+  document.getElementById('prod-emoji').value = em;
+  document.getElementById('emoji-preview').textContent = em;
+  document.getElementById('emoji-display-text').textContent = ds('emoji-display-text');
+  document.querySelectorAll('.emoji-opt').forEach(el => el.classList.toggle('selected', el.textContent === em));
+  document.getElementById('emoji-overlay').classList.remove('open');
+}
+
+function toggleEmojiPicker() {
+  const overlay = document.getElementById('emoji-overlay');
+  overlay.classList.toggle('open');
+  if (overlay.classList.contains('open')) buildEmojiGrid();
+}
+
+// Close emoji picker on outside click
+document.addEventListener('click', e => {
+  const wrap = document.querySelector('.emoji-picker-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('emoji-overlay')?.classList.remove('open');
+  }
+});
+
+function updateFreshnessVal(val) {
+  document.getElementById('prod-fresh-val').textContent = val + '%';
+}
+
+// ============================================================
+// INIT
+// ============================================================
 populateBreadTypeDropdown();
+buildEmojiGrid();
+setDashLang(_dashLang);
+
 </script>
 </body>
 </html>
