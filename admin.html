@@ -377,7 +377,7 @@ async function loadNotifications() {
           <div class="notif-time">${date}</div>
           ${isNewSignup && n.userId ? `<div class="notif-actions">
             <button class="action-btn btn-activate" onclick="activateBakery('${n.userId}')">✓ Activate Account</button>
-            ${allbakeries.find(b => b.id === n.userId)?.verified
+            ${allBakeries.find(b => b.id === n.userId)?.verified
               ? `<button class="action-btn btn-deactivate" onclick="unverifyBakery('${n.userId}')">✕ Unverify</button>`
               : `<button class="action-btn btn-verify" onclick="verifyBakery('${n.userId}')">🏅 Verify</button>`}
           </div>` : ''}
