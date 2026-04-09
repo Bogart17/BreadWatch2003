@@ -1,13 +1,21 @@
-const CACHE_NAME = 'breadwatch-v1';
+const CACHE_NAME = 'breadwatch-v2';
 const ASSETS = [
-  '/index.html',
-  '/manifest.json'
+  '/BreadWatch2003/',
+  '/BreadWatch2003/index.html',
+  '/BreadWatch2003/manifest.json',
+  '/BreadWatch2003/owner-login.html',
+  '/BreadWatch2003/dashboard.html',
+  '/BreadWatch2003/admin.html',
+  '/BreadWatch2003/sw.js',
+  '/BreadWatch2003/icon-192.png',
+  '/BreadWatch2003/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('fetch', (event) => {
@@ -22,4 +30,5 @@ self.addEventListener('activate', (event) => {
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     )
   );
+  self.clients.claim();
 });
