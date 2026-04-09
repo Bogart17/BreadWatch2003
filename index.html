@@ -352,9 +352,9 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
 .about-logo{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--wheat-light);font-weight:700;margin-bottom:4px;}
 .about-version{font-size:.72rem;color:rgba(240,208,138,.6);margin-bottom:8px;}
 .about-desc{font-size:.78rem;color:rgba(240,208,138,.8);line-height:1.5;}
-.lang-toggle{display:flex;background:var(--warm-white);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
-.lang-opt{padding:6px 14px;font-size:.78rem;font-weight:500;color:var(--text-muted);cursor:pointer;transition:all .2s;}
-.lang-opt.active{background:var(--crust-dark);color:var(--wheat-light);font-weight:600;}
+.lang-toggle{display:flex;background:rgba(255,255,255,.08);border:1px solid rgba(244,208,138,.25);border-radius:50px;overflow:hidden;}
+.lang-opt{padding:5px 13px;font-size:.72rem;font-weight:600;color:rgba(240,208,138,.6);cursor:pointer;transition:all .2s;background:transparent;border:none;font-family:'DM Sans',sans-serif;}
+.lang-opt.active{background:var(--wheat);color:var(--crust-dark);border-radius:50px;}
 
 /* NOTIFICATION BELL */
 .notif-badge{position:absolute;top:-2px;right:-2px;width:8px;height:8px;background:#EF4444;border-radius:50%;border:1.5px solid var(--crust-dark);}
@@ -375,10 +375,10 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
 
 <div class="notif-panel" id="notif-panel">
   <div class="notif-panel-header">
-    <span>🔔 Notifications</span>
+    <span id="el-notif-title">🔔 Notifications</span>
     <span style="cursor:pointer;font-size:1.1rem;" onclick="toggleNotif()">✕</span>
   </div>
-  <div id="notif-list"><div class="notif-empty">No notifications yet</div></div>
+  <div id="notif-list"><div class="notif-empty" id="el-notif-empty">No notifications yet</div></div>
 </div>
 
 <header>
@@ -396,6 +396,10 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
     </div>
   </a>
   <div class="hdr-actions">
+    <div class="lang-toggle" style="margin-right:4px;">
+      <div class="lang-opt active" id="lang-en" onclick="setLang('en')">EN</div>
+      <div class="lang-opt" id="lang-fil" onclick="setLang('fil')">FIL</div>
+    </div>
     <div style="position:relative;">
       <div class="hdr-icon-btn" onclick="toggleNotif()" title="Notifications">🔔
         <div class="notif-badge" id="notif-badge" style="display:none;"></div>
@@ -411,7 +415,7 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
 <!-- ===== ANALYZE PAGE ===== -->
 <div class="page-section active" id="page-analyze">
   <div class="hero">
-    <div class="hero-badge">🍞 Filipino Bread Tracker</div>
+    <div class="hero-badge" id="hero-badge-el">🍞 Filipino Bread Tracker</div>
     <div class="hero-title">Fresh pa ba ang<br>tinapay mo?</div>
     <div class="hero-sub">Scan a bakery QR code or check any Filipino bread's freshness instantly</div>
     <div class="hero-cta">
@@ -635,7 +639,7 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
           <div class="timer-sep">:</div>
           <div class="timer-unit"><div class="timer-num" id="td-secs">--</div><div class="timer-lbl">sec</div></div>
         </div>
-        <div class="timer-expired" id="timer-expired" style="display:none">⚠️ Estimated freshness window has passed</div>
+        <div class="timer-expired" id="timer-expired" style="display:none"><span id="el-timer-expired">⚠️ Estimated freshness window has passed</span></div>
         <div class="timer-progress">
           <div class="timer-progress-track"><div class="timer-progress-fill" id="timer-prog-fill" style="width:100%;background:#4ADE80;"></div></div>
           <div class="timer-prog-lbl"><span>Purchased</span><span id="timer-prog-pct">100%</span><span>Expires</span></div>
@@ -648,25 +652,25 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
         </svg>
         <div>
           <div class="gauge-pct" id="gauge-pct">--%</div>
-          <div class="gauge-desc" id="gauge-desc">Calculating...</div>
+          <div class="gauge-desc" id="gauge-desc" data-lang="lbl-calculating">Calculating...</div>
           <div class="gauge-indicators" id="gauge-indicators"></div>
         </div>
       </div>
       <div class="meter-area">
-        <div class="meter-row"><span style="font-size:.76rem;color:var(--text-muted);">Overall Freshness</span><span style="font-size:.76rem;font-weight:600;" id="meter-pct-lbl">--%</span></div>
+        <div class="meter-row"><span style="font-size:.76rem;color:var(--text-muted);" id="el-overall-fresh-lbl">Overall Freshness</span><span style="font-size:.76rem;font-weight:600;" id="meter-pct-lbl">--%</span></div>
         <div class="meter-track"><div class="meter-fill" id="meter-fill" style="width:0%"></div></div>
         <div class="sub-meters">
-          <div class="sub-meter-item"><div class="sub-meter-lbl">Safety</div><div class="sub-meter-track"><div class="sub-meter-fill" id="sub-safety" style="width:0%;background:#2D6A4F;"></div></div><div class="sub-meter-val" id="sub-safety-val">--</div></div>
-          <div class="sub-meter-item"><div class="sub-meter-lbl">Taste Quality</div><div class="sub-meter-track"><div class="sub-meter-fill" id="sub-taste" style="width:0%;background:#D97706;"></div></div><div class="sub-meter-val" id="sub-taste-val">--</div></div>
-          <div class="sub-meter-item"><div class="sub-meter-lbl">Texture</div><div class="sub-meter-track"><div class="sub-meter-fill" id="sub-texture" style="width:0%;background:#2563EB;"></div></div><div class="sub-meter-val" id="sub-texture-val">--</div></div>
-          <div class="sub-meter-item"><div class="sub-meter-lbl">Mold Risk</div><div class="sub-meter-track"><div class="sub-meter-fill" id="sub-mold" style="width:0%;background:#B91C1C;"></div></div><div class="sub-meter-val" id="sub-mold-val">--</div></div>
+          <div class="sub-meter-item"><div class="sub-meter-lbl" id="el-sub-safety-lbl">Safety</div><div class="sub-meter-track"><div class="sub-meter-fill" id="sub-safety" style="width:0%;background:#2D6A4F;"></div></div><div class="sub-meter-val" id="sub-safety-val">--</div></div>
+          <div class="sub-meter-item"><div class="sub-meter-lbl" id="el-sub-taste-lbl">Taste Quality</div><div class="sub-meter-track"><div class="sub-meter-fill" id="sub-taste" style="width:0%;background:#D97706;"></div></div><div class="sub-meter-val" id="sub-taste-val">--</div></div>
+          <div class="sub-meter-item"><div class="sub-meter-lbl" id="el-sub-texture-lbl">Texture</div><div class="sub-meter-track"><div class="sub-meter-fill" id="sub-texture" style="width:0%;background:#2563EB;"></div></div><div class="sub-meter-val" id="sub-texture-val">--</div></div>
+          <div class="sub-meter-item"><div class="sub-meter-lbl" id="el-sub-mold-lbl">Mold Risk</div><div class="sub-meter-track"><div class="sub-meter-fill" id="sub-mold" style="width:0%;background:#B91C1C;"></div></div><div class="sub-meter-val" id="sub-mold-val">--</div></div>
         </div>
       </div>
       <div class="stats-grid">
-        <div class="stat-cell"><div class="stat-cell-label">Best Used By</div><div class="stat-cell-value" id="stat-use-by">--</div></div>
-        <div class="stat-cell"><div class="stat-cell-label">Storage</div><div class="stat-cell-value" id="stat-storage">--</div></div>
-        <div class="stat-cell"><div class="stat-cell-label">Safety Status</div><div class="stat-cell-value" id="stat-safety">--</div></div>
-        <div class="stat-cell"><div class="stat-cell-label">Source</div><div class="stat-cell-value" id="stat-source">--</div></div>
+        <div class="stat-cell"><div class="stat-cell-label" id="el-stat-use-by-lbl">Best Used By</div><div class="stat-cell-value" id="stat-use-by">--</div></div>
+        <div class="stat-cell"><div class="stat-cell-label" id="el-stat-storage-lbl">Storage</div><div class="stat-cell-value" id="stat-storage">--</div></div>
+        <div class="stat-cell"><div class="stat-cell-label" id="el-stat-safety-lbl">Safety Status</div><div class="stat-cell-value" id="stat-safety">--</div></div>
+        <div class="stat-cell"><div class="stat-cell-label" id="el-stat-source-lbl">Source</div><div class="stat-cell-value" id="stat-source">--</div></div>
       </div>
       <div class="ai-notes">
         <div class="ai-notes-title" id="ai-notes-title-el">📊 Freshness Assessment</div>
@@ -674,7 +678,7 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
         <div class="ai-factors" id="ai-factors"></div>
       </div>
       <div class="timeline">
-        <div class="timeline-title">📅 SPOILAGE TIMELINE</div>
+        <div class="timeline-title" id="el-timeline-title">📅 SPOILAGE TIMELINE</div>
         <div id="timeline-items"></div>
       </div>
     </div>
@@ -756,44 +760,45 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
 <!-- ===== SETTINGS PAGE ===== -->
 <div class="page-section" id="page-settings">
   <div class="page-hero" style="background:linear-gradient(150deg,#1E1B4B,#312E81);">
-    <div class="page-hero-title" style="color:#E0E7FF;">Settings</div>
-    <div class="page-hero-sub" style="color:rgba(224,231,255,.65);">Customize your BreadWatch experience</div>
+    <div class="page-hero-title" style="color:#E0E7FF;" id="el-settings-title">Settings</div>
+    <div class="page-hero-sub" style="color:rgba(224,231,255,.65);" id="el-settings-sub">Customize your BreadWatch experience</div>
   </div>
   <section>
     <div class="about-card">
       <div class="about-logo">🍞 BreadWatch</div>
       <div class="about-version">Version 2.1 · Subscription Platform</div>
-      <div class="about-desc">AI-powered freshness tracker for Filipino breads. Partner with local bakeries for QR-based freshness tracking.</div>
+      <div class="about-desc"><span id="el-about-desc">AI-powered freshness tracker for Filipino breads. Partner with local bakeries for QR-based freshness tracking.</span
+> freshness tracker for Filipino breads. Partner with local bakeries for QR-based freshness tracking.</div>
     </div>
     <div class="settings-group">
-      <div class="settings-group-title">🌏 Language / Wika</div>
+      <div class="settings-group-title" id="el-grp-lang">🌏 Language / Wika</div>
       <div class="setting-row">
-        <div class="setting-info"><div class="setting-label">Display Language</div><div class="setting-desc">Switch between English and Filipino</div></div>
+        <div class="setting-info"><div class="setting-label" id="el-setting-lang-label">Display Language</div><div class="setting-desc" id="el-setting-lang-desc">Switch between English and Filipino</div></div>
         <div class="lang-toggle"><div class="lang-opt active" id="lang-en" onclick="setLanguage('en')">EN</div><div class="lang-opt" id="lang-fil" onclick="setLanguage('fil')">FIL</div></div>
       </div>
     </div>
     <div class="settings-group">
-      <div class="settings-group-title">🔬 Analysis Settings</div>
+      <div class="settings-group-title" id="el-grp-analysis">🔬 Analysis Settings</div>
       <div class="setting-row">
-        <div class="setting-info"><div class="setting-label">AI Guidance Tips</div><div class="setting-desc">Fetch AI tips after analysis</div></div>
+        <div class="setting-info"><div class="setting-label" id="el-setting-ai-label">AI Guidance Tips</div><div class="setting-desc" id="el-setting-ai-desc">Fetch AI tips after analysis</div></div>
         <label class="toggle"><input type="checkbox" id="toggle-ai" checked><span class="toggle-slider"></span></label>
       </div>
       <div class="setting-row">
-        <div class="setting-info"><div class="setting-label">Philippine Climate Mode</div><div class="setting-desc">Apply tropical humidity adjustments</div></div>
+        <div class="setting-info"><div class="setting-label" id="el-setting-ph-label">Philippine Climate Mode</div><div class="setting-desc" id="el-setting-ph-desc">Apply tropical humidity adjustments</div></div>
         <label class="toggle"><input type="checkbox" id="toggle-ph-mode" checked><span class="toggle-slider"></span></label>
       </div>
     </div>
     <div class="settings-group">
-      <div class="settings-group-title">🏪 For Bakery Owners</div>
+      <div class="settings-group-title" id="el-grp-bakery">🏪 For Bakery Owners</div>
       <div class="setting-row">
-        <div class="setting-info"><div class="setting-label">BreadWatch for Bakeries</div><div class="setting-desc">Manage your products, generate QR codes, view feedback — ₱99/month</div></div>
+        <div class="setting-info"><div class="setting-label" id="el-setting-bakery-label">BreadWatch for Bakeries</div><div class="setting-desc">Manage your products, generate QR codes, view feedback — ₱99/month</div></div>
         <a class="setting-btn" href="owner-login.html" style="text-decoration:none;">Login →</a>
       </div>
     </div>
     <div class="settings-group">
-      <div class="settings-group-title">📱 Install App</div>
+      <div class="settings-group-title" id="el-grp-install">📱 Install App</div>
       <div class="setting-row">
-        <div class="setting-info"><div class="setting-label">Add to Home Screen</div><div class="setting-desc">Install BreadWatch as a PWA</div></div>
+        <div class="setting-info"><div class="setting-label" id="el-setting-install-label">Add to Home Screen</div><div class="setting-desc" id="el-setting-install-desc">Install BreadWatch as a PWA</div></div>
         <button class="setting-btn" onclick="triggerInstall()">Install</button>
       </div>
     </div>
@@ -806,7 +811,7 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
 <div class="modal-overlay" id="qr-modal">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">📷 Scan Bakery QR Code</div>
+      <div class="modal-title" id="el-qr-modal-title">📷 Scan Bakery QR Code</div>
       <button class="modal-close" onclick="closeQRScanner()">✕</button>
     </div>
     <div class="modal-body">
@@ -815,7 +820,7 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
         <div class="qr-overlay-frame"></div>
         <div class="qr-scan-line"></div>
       </div>
-      <p class="qr-hint">Point camera at the QR code on your bread packaging</p>
+      <p class="qr-hint" id="el-qr-hint">Point camera at the QR code on your bread packaging</p>
     </div>
   </div>
 </div>
@@ -1424,8 +1429,399 @@ function showLoading(msg){document.getElementById('loading-text').textContent=ms
 function hideLoading(){document.getElementById('loading-overlay').classList.remove('visible');}
 let toastTimer;
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800);}
-function setLanguage(lang){document.getElementById('lang-en').classList.toggle('active',lang==='en');document.getElementById('lang-fil').classList.toggle('active',lang==='fil');localStorage.setItem('bw-lang',lang);showToast(lang==='fil'?'🇵🇭 Filipino':'🇬🇧 English');}
-let deferredPrompt;
+// ============================================================
+// FULL BILINGUAL SYSTEM — EN / FILIPINO
+// ============================================================
+const LANG_STRINGS = {
+en:{
+  // Hero
+  'hero-title':'Fresh pa ba ang<br>tinapay mo?',
+  'hero-sub':'Scan a bakery QR code or check any Filipino bread freshness instantly',
+  'hero-badge':'🍞 Filipino Bread Tracker',
+  'btn-scan-qr':'📷 Scan QR Code',
+  'btn-browse':'🏪 Browse Bakeries',
+  'stat-bakeries-lbl':'Bakeries',
+  'stat-products-lbl':'Products',
+  'stat-types-lbl':'Bread Types',
+  // Nav
+  'nav-tracker':'Tracker','nav-bakeries':'Bakeries','nav-tips':'Tips','nav-stats':'Stats','nav-settings':'Settings',
+  // Analyze section
+  'section-featured':'⭐ Featured Bakeries',
+  'section-tracker':'🔍 Freshness Tracker',
+  'tab-scan':'📷 Scan','tab-manual':'✏️ Manual','tab-library':'📚 Types',
+  'scan-text':'Scan your bread',
+  'scan-sub':'AI identifies the type, math calculates freshness',
+  'btn-camera':'📷 Camera','btn-upload':'📁 Upload',
+  'btn-capture':'📸 Capture','btn-cancel':'✕ Cancel',
+  'btn-analyze-img':'✨ Analyze','btn-retake':'🔄 Retake',
+  // Manual form
+  'lbl-bread-type':'Bread Type','ph-select':'Select type',
+  'lbl-storage':'Storage Method',
+  'opt-counter':'Counter / Pantry','opt-bread-box':'Bread Box / Bilao',
+  'opt-plastic':'Plastic Bag (sealed)','opt-paper':'Paper Bag / Bayong',
+  'opt-open':'Open Air (tray/shelf)','opt-fridge':'Refrigerator',
+  'opt-freezer':'Freezer','opt-airtight':'Airtight Container',
+  'lbl-date':'Date Purchased / Baked','lbl-time':'Time Purchased',
+  'lbl-mold':'Visible Mold',
+  'opt-no-mold':'No mold visible','opt-mold-spot':'Small spot',
+  'opt-mold-multi':'Multiple spots','opt-mold-spread':'Spreading / fuzzy','opt-mold-ext':'Extensive',
+  'lbl-texture':'Texture / Feel',
+  'opt-soft':'Soft & Springy (fresh)','opt-firm':'Slightly firm',
+  'opt-stale':'Stale / Hard','opt-very-hard':'Very hard','opt-wet':'Wet / Soggy',
+  'lbl-smell':'Smell',
+  'opt-fresh-smell':'Fresh bread smell','opt-neutral':'Neutral',
+  'opt-yeasty':'Strong yeasty','opt-slightly-off':'Slightly off / Sour',
+  'opt-sour':'Clearly sour','opt-musty':'Musty / Moldy','opt-rancid':'Rancid / Rotten',
+  'lbl-color':'Color',
+  'opt-normal-color':'Normal color','opt-dark':'Slightly darkened',
+  'opt-green':'Green / blue spots','opt-white-fuzzy':'White fuzzy patches',
+  'opt-yellow':'Yellowing','opt-black':'Black spots',
+  'lbl-filling':'Filling Condition',
+  'opt-no-fill':'No filling / Plain','opt-fill-ok':'Filling looks normal',
+  'opt-fill-dry':'Filling dried out','opt-fill-wet':'Filling leaking / wet',
+  'opt-fill-sour':'Filling smells sour','opt-fill-discolor':'Filling discolored',
+  'lbl-climate':'Climate',
+  'opt-hot':'Hot & humid (typical PH)','opt-rainy':'Rainy / Very humid',
+  'opt-aircon':'Air-conditioned','opt-cool':'Cool & dry',
+  'lbl-pkg':'Package Status',
+  'opt-sealed':'Sealed / Unopened','opt-opened':'Opened / Sliced','opt-partial':'Partially eaten',
+  'lbl-source':'Bread Source',
+  'opt-panaderia':'Local Panaderia','opt-supermarket':'Supermarket',
+  'opt-homemade':'Homemade','opt-bakeshop':'Bakeshop',
+  'btn-get-report':'✨ Get Freshness Report',
+  // Results
+  'section-report':'📊 Freshness Report',
+  'lbl-live-timer':'Live Freshness Countdown',
+  'lbl-days':'days','lbl-hrs':'hrs','lbl-min':'min','lbl-sec':'sec',
+  'timer-expired':'⚠️ Estimated freshness window has passed',
+  'lbl-purchased':'Purchased','lbl-expires':'Expires',
+  'lbl-overall':'Overall Freshness','lbl-calculating':'Calculating...',
+  'lbl-safety':'Safety','lbl-taste':'Taste Quality','lbl-texture-sub':'Texture','lbl-mold-risk':'Mold Risk',
+  'lbl-use-by':'Best Used By','lbl-storage-lbl':'Storage',
+  'lbl-safety-status':'Safety Status','lbl-source-lbl':'Source',
+  'status-fresh':'Fresh','status-good':'Good','status-caution':'Caution','status-expired':'Expired',
+  'chip-safe':'✓ Safe','chip-eat-soon':'⚡ Eat soon','chip-discard':'✗ Discard',
+  'label-freshness-assess':'📊 Freshness Assessment',
+  'timeline-title':'📅 SPOILAGE TIMELINE',
+  // Tips section
+  'section-tips':'💡 Storage Tips',
+  'tip1-title':'PH Heat & Humidity','tip1-text':'30°C+ and 80% humidity make bread spoil 2× faster. Keep away from sunlight.',
+  'tip2-title':'Freeze It','tip2-text':'Pandesal, ensaymada, monay freeze well. Separate before freezing.',
+  'tip3-title':'Biscocho & Hopia','tip3-text':'Dry breads last 2–3 weeks sealed airtight.',
+  'tip4-title':'Chill Fillings','tip4-text':'Cream, custard, coconut fillings must be refrigerated within 2 hours.',
+  // Bakeries page
+  'bakeries-title':'🏪 Partner Bakeries',
+  'bakeries-sub':'Discover and scan products from verified Filipino bakeries',
+  // Tips page
+  'tips-page-title':'Paano itago ang tinapay?',
+  'tips-page-sub':'Storage and safety tips for every Filipino bread',
+  'tips-gen-title':'🌡️ General Rules',
+  'tip-heat-title':'Philippine heat & humidity','tip-heat':'At 30°C+ with 80%+ humidity, mold can appear on soft bread within 24–36 hours. Store away from sunlight and stoves.',
+  'tip-freeze-title':'Freeze, not fridge (plain breads)','tip-freeze':'Refrigerators dry out plain bread. Freeze instead. Only refrigerate filled breads.',
+  'tip-bag-title':'Paper bag vs plastic bag','tip-bag':'Paper bags let bread breathe. Never seal warm bread in plastic — condensation causes mold within hours.',
+  'tip-2hr-title':'2-hour rule for filled breads','tip-2hr':'Pan de Coco, Kalihim, Inipit — no more than 2 hours at room temperature.',
+  'tip-mold-title':'Never eat moldy bread','tip-mold':'Mold on soft bread means spores have already spread through the entire loaf. Discard immediately.',
+  // Stats page
+  'stats-title':'Filipino Bread Statistics',
+  'stats-sub':'Shelf life data for all 28 breads',
+  'stats-chart-title':'📊 Counter Shelf Life',
+  'stats-mold-title':'🦠 Mold Risk Ranking',
+  'stats-compare-title':'📋 Storage Comparison',
+  'stats-facts-title':'💡 Did you know?',
+  'tbl-bread':'Bread','tbl-counter':'Counter','tbl-fridge':'Fridge','tbl-freezer':'Freezer',
+  'fact1':'Biscocho lasts up to 21 days — 21× longer than Pandesal which expires in just 1 day.',
+  'fact2':'Freezing extends Pandesal from 1–2 days to 45 days — a 30× improvement.',
+  'fact3':'Philippine humidity averages 80%+ year-round, making bread spoil significantly faster.',
+  // Settings page
+  'settings-title':'Settings',
+  'settings-sub':'Customize your BreadWatch experience',
+  'about-desc':'AI-powered freshness tracker for Filipino breads. Partner with local bakeries for QR-based freshness tracking.',
+  'grp-lang':'🌏 Language / Wika',
+  'setting-lang-label':'Display Language','setting-lang-desc':'Switch between English and Filipino',
+  'grp-analysis':'🔬 Analysis Settings',
+  'setting-ai-label':'AI Guidance Tips','setting-ai-desc':'Fetch AI tips after analysis',
+  'setting-ph-label':'Philippine Climate Mode','setting-ph-desc':'Apply tropical humidity adjustments',
+  'grp-bakery':'🏪 For Bakery Owners',
+  'setting-bakery-label':'BreadWatch for Bakeries','setting-bakery-desc':'Manage products, generate QR codes, view feedback — ₱99/month',
+  'setting-bakery-btn':'Login →',
+  'grp-install':'📱 Install App',
+  'setting-install-label':'Add to Home Screen','setting-install-desc':'Install BreadWatch as a PWA',
+  'setting-install-btn':'Install',
+  // Notification panel
+  'notif-title':'🔔 Notifications',
+  'notif-empty':'No notifications yet',
+  'notif-welcome':'Welcome to BreadWatch! Scan a bakery QR code to check product freshness.',
+  // QR modal
+  'qr-modal-title':'📷 Scan Bakery QR Code',
+  'qr-hint':'Point camera at the QR code on your bread packaging',
+  // For bakeries header btn
+  'btn-for-bakeries':'🏪 For Bakeries',
+  // Loading
+  'loading-bakeries':'Loading bakeries...',
+  // Error toasts
+  'toast-qr-invalid':'⚠️ Invalid QR code format',
+  'toast-qr-fail':'⚠️ Could not read QR code data',
+  'toast-product-nf':'Product not found.',
+  'toast-bakery-nf':'Bakery not found.',
+  'toast-error':'Error loading product.',
+  'toast-install':'Use Share → Add to Home Screen',
+},
+fil:{
+  // Hero
+  'hero-title':'Sariwa pa ba ang<br>tinapay mo?',
+  'hero-sub':'Mag-scan ng QR code ng panaderia o suriin ang kasariwaan ng tinapay agad',
+  'hero-badge':'🍞 Filipino Bread Tracker',
+  'btn-scan-qr':'📷 Mag-scan ng QR Code',
+  'btn-browse':'🏪 Tingnan ang mga Panaderia',
+  'stat-bakeries-lbl':'Mga Panaderia',
+  'stat-products-lbl':'Mga Produkto',
+  'stat-types-lbl':'Uri ng Tinapay',
+  // Nav
+  'nav-tracker':'Suriin','nav-bakeries':'Panaderia','nav-tips':'Mga Tip','nav-stats':'Istatistika','nav-settings':'Settings',
+  // Analyze section
+  'section-featured':'⭐ Mga Tampok na Panaderia',
+  'section-tracker':'🔍 Tagasukat ng Kasariwaan',
+  'tab-scan':'📷 I-scan','tab-manual':'✏️ Mano-mano','tab-library':'📚 Mga Uri',
+  'scan-text':'I-scan ang inyong tinapay',
+  'scan-sub':'Tinutukoy ng AI ang uri, matematika ang nagkalkula ng kasariwaan',
+  'btn-camera':'📷 Kamera','btn-upload':'📁 Mag-upload',
+  'btn-capture':'📸 Kumuha','btn-cancel':'✕ Kanselahin',
+  'btn-analyze-img':'✨ Suriin','btn-retake':'🔄 Kumuha Muli',
+  // Manual form
+  'lbl-bread-type':'Uri ng Tinapay','ph-select':'Pumili ng uri',
+  'lbl-storage':'Paraan ng Pag-iimbak',
+  'opt-counter':'Counter / Pantry','opt-bread-box':'Kahon ng Tinapay / Bilao',
+  'opt-plastic':'Plastik na Bag (selyado)','opt-paper':'Papel na Bag / Bayong',
+  'opt-open':'Bukas (bandehado/istante)','opt-fridge':'Refrigerator / Ref',
+  'opt-freezer':'Freezer','opt-airtight':'Lalagyang Hermitiko',
+  'lbl-date':'Petsa ng Binili / Niluto','lbl-time':'Oras ng Binili',
+  'lbl-mold':'Nakikitang Amag',
+  'opt-no-mold':'Walang amag','opt-mold-spot':'Maliit na bahid',
+  'opt-mold-multi':'Maraming bahid','opt-mold-spread':'Kumakalat / Bulbol','opt-mold-ext':'Malawak na saklaw',
+  'lbl-texture':'Texture / Pakiramdam',
+  'opt-soft':'Malambot at Malusog (sariwa)','opt-firm':'Bahagyang matigas',
+  'opt-stale':'Lipas / Matigas','opt-very-hard':'Napakatigas','opt-wet':'Basa / Malapot',
+  'lbl-smell':'Amoy',
+  'opt-fresh-smell':'Amoy ng sariwang tinapay','opt-neutral':'Walang amoy',
+  'opt-yeasty':'Malakas na amoy ng lebadura','opt-slightly-off':'Bahagyang maasim',
+  'opt-sour':'Malinaw na maasim','opt-musty':'Malanta / Amag','opt-rancid':'Bulok',
+  'lbl-color':'Pagbabago ng Kulay',
+  'opt-normal-color':'Normal na kulay','opt-dark':'Bahagyang dumilim',
+  'opt-green':'Berde / asul na bahid','opt-white-fuzzy':'Puting bulbol na bahid',
+  'opt-yellow':'Nangdilaw','opt-black':'Itim na bahid',
+  'lbl-filling':'Kondisyon ng Palaman',
+  'opt-no-fill':'Walang palaman','opt-fill-ok':'Normal ang palaman',
+  'opt-fill-dry':'Tuyo ang palaman','opt-fill-wet':'Tumatulo / basa ang palaman',
+  'opt-fill-sour':'Maasim ang amoy ng palaman','opt-fill-discolor':'Nagbago ang kulay ng palaman',
+  'lbl-climate':'Klima / Panahon',
+  'opt-hot':'Mainit at mahalumigmig (karaniwang PH)','opt-rainy':'Maulan / Napaka-halumigmig',
+  'opt-aircon':'Silid may aircon','opt-cool':'Malamig at tuyo',
+  'lbl-pkg':'Kalagayan ng Pakete',
+  'opt-sealed':'Selyado / Di-bukas','opt-opened':'Bukas / Hiniwa','opt-partial':'Kalahati na',
+  'lbl-source':'Pinagmulan ng Tinapay',
+  'opt-panaderia':'Lokal na Panaderia','opt-supermarket':'Supermarket',
+  'opt-homemade':'Gawa sa bahay','opt-bakeshop':'Bakeshop',
+  'btn-get-report':'✨ Makuha ang Ulat ng Kasariwaan',
+  // Results
+  'section-report':'📊 Ulat ng Kasariwaan',
+  'lbl-live-timer':'Live na Countdown ng Kasariwaan',
+  'lbl-days':'araw','lbl-hrs':'oras','lbl-min':'min','lbl-sec':'seg',
+  'timer-expired':'⚠️ Lumipas na ang tinantyang panahon ng kasariwaan',
+  'lbl-purchased':'Binili','lbl-expires':'Mag-eexpire',
+  'lbl-overall':'Kabuuang Kasariwaan','lbl-calculating':'Kinakalkula...',
+  'lbl-safety':'Kaligtasan','lbl-taste':'Kalidad ng Lasa','lbl-texture-sub':'Texture','lbl-mold-risk':'Panganib ng Amag',
+  'lbl-use-by':'Pinakamabuting Gamitin Bago','lbl-storage-lbl':'Pag-iimbak',
+  'lbl-safety-status':'Kalagayan ng Kaligtasan','lbl-source-lbl':'Pinagmulan',
+  'status-fresh':'Sariwa','status-good':'Mabuti','status-caution':'Mag-ingat','status-expired':'Lipas',
+  'chip-safe':'✓ Ligtas','chip-eat-soon':'⚡ Kainin agad','chip-discard':'✗ Itapon',
+  'label-freshness-assess':'📊 Pagtatasa ng Kasariwaan',
+  'timeline-title':'📅 TALAAN NG PAGKASIRA',
+  // Tips section
+  'section-tips':'💡 Mga Tip sa Pag-iimbak',
+  'tip1-title':'Init at Kahalumigmigan ng PH','tip1-text':'30°C+ at 80% kahalumigmigan ay nagpapabilis ng pagkasira ng tinapay ng 2×.',
+  'tip2-title':'I-freeze','tip2-text':'Ang pandesal, ensaymada, monay ay maaaring i-freeze. Ihiwalay bago i-freeze.',
+  'tip3-title':'Biscocho at Hopia','tip3-text':'Ang tuyong tinapay ay tumatagal ng 2–3 linggo kung selyado.',
+  'tip4-title':'Palamigin ang Palaman','tip4-text':'Ang cream, custard, niyog na palaman ay dapat ilagay sa ref sa loob ng 2 oras.',
+  // Bakeries page
+  'bakeries-title':'🏪 Mga Kasosyong Panaderia',
+  'bakeries-sub':'Tuklasin at i-scan ang mga produkto mula sa mga nabe-verify na Filipino na panaderia',
+  // Tips page
+  'tips-page-title':'Paano itago ang tinapay?',
+  'tips-page-sub':'Mga tip sa pag-iimbak at kaligtasan para sa bawat tinapay',
+  'tips-gen-title':'🌡️ Pangkalahatang Panuntunan',
+  'tip-heat-title':'Init at kahalumigmigan ng Pilipinas ang kaaway','tip-heat':'Sa 30°C+ at 80%+ kahalumigmigan, maaaring lumabas ang amag sa loob ng 24–36 oras.',
+  'tip-freeze-title':'I-freeze, huwag ilagay sa ref (para sa plain na tinapay)','tip-freeze':'Ang ref ay nagpapatuyo ng tinapay. Mas mabuti ang pag-freeze. Ilagay sa ref lamang ang may palaman.',
+  'tip-bag-title':'Papel na bag vs plastik na bag','tip-bag':'Ang papel na bag ay nagpapalabas ng hangin. Huwag isara ang mainit na tinapay sa plastik — nagdudulot ng amag.',
+  'tip-2hr-title':'Panuntunan ng 2 oras para sa tinapay na may palaman','tip-2hr':'Pan de Coco, Kalihim, Inipit — hindi dapat nasa room temperature ng mahigit 2 oras.',
+  'tip-mold-title':'Huwag kumain ng tinapay na may amag','tip-mold':'Ang amag sa malambot na tinapay ay nangangahulugang kumalat na ang mga spores. Itapon agad.',
+  // Stats page
+  'stats-title':'Istatistika ng Tinapay ng Pilipinas',
+  'stats-sub':'Data ng buhay-istante para sa lahat ng 28 tinapay',
+  'stats-chart-title':'📊 Buhay-Istante sa Counter',
+  'stats-mold-title':'🦠 Ranggo ng Panganib ng Amag',
+  'stats-compare-title':'📋 Buong Paghahambing ng Pag-iimbak',
+  'stats-facts-title':'💡 Alam mo ba?',
+  'tbl-bread':'Tinapay','tbl-counter':'Counter','tbl-fridge':'Ref','tbl-freezer':'Freezer',
+  'fact1':'Ang biscocho ay tumatagal ng 21 araw — 21× na mas matagal kaysa pandesal na nag-eexpire sa 1 araw.',
+  'fact2':'Ang pag-freeze ay nagpapalawak ng buhay ng pandesal mula 1–2 araw hanggang 45 araw — isang 30× na pagpapabuti.',
+  'fact3':'Ang kahalumigmigan ng Pilipinas ay nagta-average ng 80%+ buong taon, na nagpapabilis ng pagkasira ng tinapay.',
+  // Settings page
+  'settings-title':'Mga Setting',
+  'settings-sub':'I-customize ang inyong karanasan sa BreadWatch',
+  'about-desc':'AI-powered na tagasukat ng kasariwaan para sa mga tinapay. Makipagtulungan sa mga lokal na panaderia para sa QR-based na pagsubaybay.',
+  'grp-lang':'🌏 Wika / Language',
+  'setting-lang-label':'Wika ng Display','setting-lang-desc':'Lumipat sa pagitan ng Ingles at Filipino',
+  'grp-analysis':'🔬 Mga Setting ng Pagsusuri',
+  'setting-ai-label':'Mga Tip mula sa AI','setting-ai-desc':'Kumuha ng mga tip mula sa AI pagkatapos ng pagsusuri',
+  'setting-ph-label':'Mode ng Klimang Pilipino','setting-ph-desc':'Ilapat ang mga pagsasaayos ng tropical na kahalumigmigan',
+  'grp-bakery':'🏪 Para sa mga May-ari ng Panaderia',
+  'setting-bakery-label':'BreadWatch para sa mga Panaderia','setting-bakery-desc':'Pamahalaan ang mga produkto, gumawa ng QR codes, tingnan ang feedback — ₱99/buwan',
+  'setting-bakery-btn':'Mag-login →',
+  'grp-install':'📱 I-install ang App',
+  'setting-install-label':'Idagdag sa Home Screen','setting-install-desc':'I-install ang BreadWatch bilang PWA',
+  'setting-install-btn':'I-install',
+  // Notification panel
+  'notif-title':'🔔 Mga Notification',
+  'notif-empty':'Wala pang mga notification',
+  'notif-welcome':'Maligayang pagdating sa BreadWatch! Mag-scan ng QR code ng panaderia para suriin ang kasariwaan ng produkto.',
+  // QR modal
+  'qr-modal-title':'📷 Mag-scan ng QR Code ng Panaderia',
+  'qr-hint':'Ituro ang kamera sa QR code sa packaging ng inyong tinapay',
+  // For bakeries header btn
+  'btn-for-bakeries':'🏪 Para sa Panaderia',
+  // Loading
+  'loading-bakeries':'Naglo-load ang mga panaderia...',
+  // Error toasts
+  'toast-qr-invalid':'⚠️ Hindi wastong format ng QR code',
+  'toast-qr-fail':'⚠️ Hindi mabasa ang data ng QR code',
+  'toast-product-nf':'Hindi natagpuan ang produkto.',
+  'toast-bakery-nf':'Hindi natagpuan ang panaderia.',
+  'toast-error':'Error sa pag-load ng produkto.',
+  'toast-install':'Gamitin ang Share → Add to Home Screen',
+}
+};
+
+let _lang = localStorage.getItem('bw-lang') || 'en';
+
+function s(key) {
+  return LANG_STRINGS[_lang]?.[key] ?? LANG_STRINGS['en']?.[key] ?? key;
+}
+
+function setLang(l) {
+  _lang = l;
+  localStorage.setItem('bw-lang', l);
+  document.getElementById('lang-en').classList.toggle('active', l === 'en');
+  document.getElementById('lang-fil').classList.toggle('active', l === 'fil');
+  applyLang();
+  showToast(l === 'fil' ? '🇵🇭 Filipino na ang wika' : '🇬🇧 Switched to English');
+}
+
+function applyLang() {
+  const L = _lang;
+  // Helper — set text if el exists
+  const tx = (id, key) => { const el=document.getElementById(id); if(el) el.textContent=s(key); };
+  const ht = (id, key) => { const el=document.getElementById(id); if(el) el.innerHTML=s(key); };
+
+  // Hero
+  ht('hero-title-el','hero-title');
+  tx('hero-sub-el','hero-sub');
+  tx('hero-badge-el','hero-badge');
+
+  // Bottom nav labels
+  ['tracker','bakeries','tips','stats','settings'].forEach((n,i) => {
+    const els = document.querySelectorAll('.nav-label');
+    if(els[i]) els[i].textContent = s('nav-'+n);
+  });
+
+  // Section titles & tabs — use data-key attributes approach
+  document.querySelectorAll('[data-lang]').forEach(el => {
+    const key = el.getAttribute('data-lang');
+    if(key) {
+      if(el.getAttribute('data-html')) el.innerHTML = s(key);
+      else el.textContent = s(key);
+    }
+  });
+
+  // Settings page strings
+  tx('el-settings-title','settings-title');
+  tx('el-settings-sub','settings-sub');
+  tx('el-about-desc','about-desc');
+  tx('el-grp-lang','grp-lang');
+  tx('el-setting-lang-label','setting-lang-label');
+  tx('el-setting-lang-desc','setting-lang-desc');
+  tx('el-grp-analysis','grp-analysis');
+  tx('el-setting-ai-label','setting-ai-label');
+  tx('el-setting-ai-desc','setting-ai-desc');
+  tx('el-setting-ph-label','setting-ph-label');
+  tx('el-setting-ph-desc','setting-ph-desc');
+  tx('el-grp-bakery','grp-bakery');
+  tx('el-setting-bakery-label','setting-bakery-label');
+  tx('el-setting-bakery-desc','setting-bakery-desc');
+  tx('el-setting-bakery-btn','setting-bakery-btn');
+  tx('el-grp-install','grp-install');
+  tx('el-setting-install-label','setting-install-label');
+  tx('el-setting-install-desc','setting-install-desc');
+  tx('el-setting-install-btn','setting-install-btn');
+
+  // Results section
+  tx('result-timer-label','lbl-live-timer');
+  tx('el-td-days-lbl','lbl-days');
+  tx('el-td-hrs-lbl','lbl-hrs');
+  tx('el-td-min-lbl','lbl-min');
+  tx('el-td-sec-lbl','lbl-sec');
+  tx('el-timer-expired','timer-expired');
+  tx('el-purchased-lbl','lbl-purchased');
+  tx('el-expires-lbl','lbl-expires');
+  tx('el-overall-fresh-lbl','lbl-overall');
+  tx('el-sub-safety-lbl','lbl-safety');
+  tx('el-sub-taste-lbl','lbl-taste');
+  tx('el-sub-texture-lbl','lbl-texture-sub');
+  tx('el-sub-mold-lbl','lbl-mold-risk');
+  tx('el-stat-use-by-lbl','lbl-use-by');
+  tx('el-stat-storage-lbl','lbl-storage-lbl');
+  tx('el-stat-safety-lbl','lbl-safety-status');
+  tx('el-stat-source-lbl','lbl-source-lbl');
+  tx('el-timeline-title','timeline-title');
+
+  // Notification panel
+  tx('el-notif-title','notif-title');
+
+  // QR modal
+  tx('el-qr-modal-title','qr-modal-title');
+  tx('el-qr-hint','qr-hint');
+
+  // Manual form selects & labels
+  const setOpts = (selId, opts) => {
+    const sel = document.getElementById(selId);
+    if(!sel) return;
+    Array.from(sel.options).forEach((opt,i) => { if(opts[i]) opt.text = s(opts[i]); });
+  };
+  tx('el-lbl-bread-type','lbl-bread-type');
+  const btEl = document.getElementById('bread-type');
+  if(btEl && btEl.options[0]) btEl.options[0].text = s('ph-select');
+  tx('el-lbl-storage','lbl-storage');
+  setOpts('storage-method',['opt-counter','opt-bread-box','opt-plastic','opt-paper','opt-open','opt-fridge','opt-freezer','opt-airtight']);
+  tx('el-lbl-date','lbl-date'); tx('el-lbl-time','lbl-time');
+  tx('el-lbl-mold','lbl-mold');
+  setOpts('mold',['opt-no-mold','opt-mold-spot','opt-mold-multi','opt-mold-spread','opt-mold-ext']);
+  tx('el-lbl-texture','lbl-texture');
+  setOpts('texture',['opt-soft','opt-firm','opt-stale','opt-very-hard','opt-wet']);
+  tx('el-lbl-smell','lbl-smell');
+  setOpts('smell',['opt-fresh-smell','opt-neutral','opt-yeasty','opt-slightly-off','opt-sour','opt-musty','opt-rancid']);
+  tx('el-lbl-color','lbl-color');
+  setOpts('color-change',['opt-normal-color','opt-dark','opt-green','opt-white-fuzzy','opt-yellow','opt-black']);
+  tx('el-lbl-filling','lbl-filling');
+  setOpts('filling',['opt-no-fill','opt-fill-ok','opt-fill-dry','opt-fill-wet','opt-fill-sour','opt-fill-discolor']);
+  tx('el-lbl-climate','lbl-climate');
+  setOpts('climate',['opt-hot','opt-rainy','opt-aircon','opt-cool']);
+  tx('el-lbl-pkg','lbl-pkg');
+  setOpts('opened',['opt-sealed','opt-opened','opt-partial']);
+  tx('el-lbl-source','lbl-source');
+  setOpts('bread-source',['opt-panaderia','opt-supermarket','opt-homemade','opt-bakeshop']);
+
+  const btn = document.querySelector('.btn-analyze');
+  if(btn) btn.textContent = s('btn-get-report');
+}let deferredPrompt;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;});
 function triggerInstall(){if(deferredPrompt){deferredPrompt.prompt();}else{showToast('Use Share → Add to Home Screen');}}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
