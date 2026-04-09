@@ -392,21 +392,17 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
     </svg>
     <div>
       <div class="logo-text">BreadWatch</div>
-      <div class="logo-tag">Freshness Tracker</div>
+      <div class="logo-tag" id="el-logo-tag">Freshness Tracker</div>
     </div>
   </a>
   <div class="hdr-actions">
-    <div class="lang-toggle" style="margin-right:4px;">
-      <div class="lang-opt active" id="lang-en" onclick="setLang('en')">EN</div>
-      <div class="lang-opt" id="lang-fil" onclick="setLang('fil')">FIL</div>
-    </div>
     <div style="position:relative;">
       <div class="hdr-icon-btn" onclick="toggleNotif()" title="Notifications">🔔
         <div class="notif-badge" id="notif-badge" style="display:none;"></div>
       </div>
     </div>
     <div class="hdr-icon-btn" onclick="openQRScanner()" title="Scan QR Code">📷</div>
-    <a class="hdr-btn" href="owner-login.html">🏪 For Bakeries</a>
+    <a class="hdr-btn" href="owner-login.html" id="el-btn-for-bakeries">🏪 For Bakeries</a>
   </div>
 </header>
 
@@ -416,11 +412,11 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
 <div class="page-section active" id="page-analyze">
   <div class="hero">
     <div class="hero-badge" id="hero-badge-el">🍞 Filipino Bread Tracker</div>
-    <div class="hero-title">Fresh pa ba ang<br>tinapay mo?</div>
+    <div class="hero-title" id="hero-title-el">Fresh pa ba ang<br>tinapay mo?</div>
     <div class="hero-sub">Scan a bakery QR code or check any Filipino bread's freshness instantly</div>
     <div class="hero-cta">
-      <button class="btn-primary" onclick="openQRScanner()">📷 Scan QR Code</button>
-      <button class="btn-outline" onclick="showSection('bakeries')">🏪 Browse Bakeries</button>
+      <button class="btn-primary" id="el-btn-scan-qr" onclick="openQRScanner()">📷 Scan QR Code</button>
+      <button class="btn-outline" id="el-btn-browse" onclick="showSection('bakeries')">🏪 Browse Bakeries</button>
     </div>
     <svg class="hero-art" viewBox="0 0 150 100" fill="none">
       <ellipse cx="75" cy="65" rx="65" ry="26" fill="white" opacity=".5"/>
@@ -431,14 +427,14 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
   </div>
 
   <div class="stats-row" id="platform-stats">
-    <div class="stat-pill"><span class="stat-num" id="stat-bakeries">0</span><span class="stat-label">Bakeries</span></div>
-    <div class="stat-pill"><span class="stat-num" id="stat-products">0</span><span class="stat-label">Products</span></div>
-    <div class="stat-pill"><span class="stat-num">28</span><span class="stat-label">Bread Types</span></div>
+    <div class="stat-pill"><span class="stat-num" id="stat-bakeries">0</span><span class="stat-label" id="el-stat-bakeries-lbl">Bakeries</span></div>
+    <div class="stat-pill"><span class="stat-num" id="stat-products">0</span><span class="stat-label" id="el-stat-products-lbl">Products</span></div>
+    <div class="stat-pill"><span class="stat-num">28</span><span class="stat-label" id="el-stat-types-lbl">Bread Types</span></div>
   </div>
 
   <!-- FEATURED BAKERIES -->
   <section>
-    <div class="section-title"><span>⭐</span> Featured Bakeries</div>
+    <div class="section-title"><span>⭐</span> <span id="el-section-featured">Featured Bakeries</span></div>
     <div id="featured-bakeries-list">
       <div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:.85rem;">Loading bakeries...</div>
     </div>
@@ -446,11 +442,11 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
 
   <!-- FRESHNESS TRACKER -->
   <section>
-    <div class="section-title"><span>🔍</span> Freshness Tracker</div>
+    <div class="section-title"><span>🔍</span> <span id="el-section-tracker">Freshness Tracker</span></div>
     <div class="tabs">
-      <div class="tab active" onclick="switchTab('scan')">📷 Scan</div>
-      <div class="tab" onclick="switchTab('manual')">✏️ Manual</div>
-      <div class="tab" onclick="switchTab('library')">📚 Types</div>
+      <div class="tab active" id="el-tab-scan" onclick="switchTab('scan')">📷 Scan</div>
+      <div class="tab" id="el-tab-manual" onclick="switchTab('manual')">✏️ Manual</div>
+      <div class="tab" id="el-tab-library" onclick="switchTab('library')">📚 Types</div>
     </div>
 
     <div class="tab-panel active" id="tab-scan">
@@ -460,11 +456,11 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
         <canvas id="canvas-capture"></canvas>
         <div class="scan-placeholder" id="scan-placeholder">
           <div class="scan-icon">🥯</div>
-          <div class="scan-text">Scan your bread</div>
-          <div class="scan-sub">AI identifies the type, math calculates freshness</div>
+          <div class="scan-text" id="el-scan-text">Scan your bread</div>
+          <div class="scan-sub" id="el-scan-sub">AI identifies the type, math calculates freshness</div>
           <div class="scan-buttons">
-            <button class="btn-scan" onclick="startBreadCamera(event)">📷 Camera</button>
-            <button class="btn-scan sec" onclick="triggerUpload(event)">📁 Upload</button>
+            <button class="btn-scan" id="el-btn-camera" onclick="startBreadCamera(event)">📷 Camera</button>
+            <button class="btn-scan sec" id="el-btn-upload" onclick="triggerUpload(event)">📁 Upload</button>
           </div>
         </div>
         <div class="scan-overlay" id="scan-overlay">
@@ -474,25 +470,25 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
       </div>
       <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleFileUpload(event)">
       <div id="camera-controls" style="display:none;margin-top:10px;gap:8px;justify-content:center;">
-        <button class="btn-scan" onclick="capturePhoto()">📸 Capture</button>
-        <button class="btn-scan sec" onclick="stopBreadCamera()">✕ Cancel</button>
+        <button class="btn-scan" id="el-btn-capture" onclick="capturePhoto()">📸 Capture</button>
+        <button class="btn-scan sec" id="el-btn-cancel" onclick="stopBreadCamera()">✕ Cancel</button>
       </div>
       <div id="retake-controls" style="display:none;margin-top:10px;justify-content:center;gap:8px;">
-        <button class="btn-scan" onclick="analyzeImage()">✨ Analyze</button>
-        <button class="btn-scan sec" onclick="retakePhoto()">🔄 Retake</button>
+        <button class="btn-scan" id="el-btn-analyze-img" onclick="analyzeImage()">✨ Analyze</button>
+        <button class="btn-scan sec" id="el-btn-retake" onclick="retakePhoto()">🔄 Retake</button>
       </div>
     </div>
 
     <div class="tab-panel" id="tab-manual">
       <div class="manual-form">
-        <div class="form-section-lbl">🍞 Bread Information</div>
+        <div class="form-section-lbl" id="el-form-sec-bread">🍞 Bread Information</div>
         <div class="form-row">
           <div class="form-group">
-            <label>Bread Type</label>
+            <label id="el-lbl-bread-type">Bread Type</label>
             <select id="bread-type"><option value="">Select type</option></select>
           </div>
           <div class="form-group">
-            <label>Storage Method</label>
+            <label id="el-lbl-storage">Storage Method</label>
             <select id="storage-method">
               <option value="counter">Counter / Pantry</option>
               <option value="bread-box">Bread Box / Bilao</option>
@@ -507,18 +503,18 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Date Purchased / Baked</label>
+            <label id="el-lbl-date">Date Purchased / Baked</label>
             <input type="date" id="purchase-date">
           </div>
           <div class="form-group">
-            <label>Time Purchased</label>
+            <label id="el-lbl-time">Time Purchased</label>
             <input type="time" id="purchase-time">
           </div>
         </div>
-        <div class="form-section-lbl">👁️ Condition</div>
+        <div class="form-section-lbl" id="el-form-sec-cond">👁️ Condition</div>
         <div class="form-row">
           <div class="form-group">
-            <label>Visible Mold</label>
+            <label id="el-lbl-mold">Visible Mold</label>
             <select id="mold">
               <option value="none">No mold visible</option>
               <option value="spot">Small spot</option>
@@ -528,7 +524,7 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
             </select>
           </div>
           <div class="form-group">
-            <label>Texture / Feel</label>
+            <label id="el-lbl-texture">Texture / Feel</label>
             <select id="texture">
               <option value="soft">Soft & Springy (fresh)</option>
               <option value="slightly-firm">Slightly firm</option>
@@ -540,7 +536,7 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Smell</label>
+            <label id="el-lbl-smell">Smell</label>
             <select id="smell">
               <option value="fresh">Fresh bread smell</option>
               <option value="neutral">Neutral</option>
@@ -552,7 +548,7 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
             </select>
           </div>
           <div class="form-group">
-            <label>Color</label>
+            <label id="el-lbl-color">Color</label>
             <select id="color-change">
               <option value="normal">Normal color</option>
               <option value="slightly-dark">Slightly darkened</option>
@@ -565,7 +561,7 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Filling Condition</label>
+            <label id="el-lbl-filling">Filling Condition</label>
             <select id="filling">
               <option value="na">No filling / Plain</option>
               <option value="normal">Filling looks normal</option>
@@ -576,7 +572,7 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
             </select>
           </div>
           <div class="form-group">
-            <label>Climate</label>
+            <label id="el-lbl-climate">Climate</label>
             <select id="climate">
               <option value="hot-humid">Hot & humid (typical PH)</option>
               <option value="rainy">Rainy / Very humid</option>
@@ -587,7 +583,7 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Package Status</label>
+            <label id="el-lbl-pkg">Package Status</label>
             <select id="opened">
               <option value="sealed">Sealed / Unopened</option>
               <option value="opened">Opened / Sliced</option>
@@ -595,7 +591,7 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
             </select>
           </div>
           <div class="form-group">
-            <label>Bread Source</label>
+            <label id="el-lbl-source">Bread Source</label>
             <select id="bread-source">
               <option value="panaderia">Local Panaderia</option>
               <option value="supermarket">Supermarket</option>
@@ -604,7 +600,7 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
             </select>
           </div>
         </div>
-        <button class="btn-analyze" onclick="analyzeManual()">✨ Get Freshness Report</button>
+        <button class="btn-analyze" id="el-btn-get-report" onclick="analyzeManual()">✨ Get Freshness Report</button>
       </div>
     </div>
 
@@ -622,27 +618,27 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
   </section>
 
   <section id="results-section">
-    <div class="section-title"><span>📊</span> Freshness Report</div>
+    <div class="section-title"><span>📊</span> <span id="el-section-report">Freshness Report</span></div>
     <div class="freshness-card fade-up">
       <div class="freshness-header">
         <div class="freshness-title" id="result-bread-name">—</div>
         <div class="freshness-badge" id="result-badge">—</div>
       </div>
       <div class="timer-area">
-        <div class="timer-label"><div class="timer-dot"></div>Live Freshness Countdown</div>
+        <div class="timer-label"><div class="timer-dot"></div><span id="el-lbl-live-timer">Live Freshness Countdown</span></div>
         <div class="timer-display" id="timer-display">
-          <div class="timer-unit"><div class="timer-num" id="td-days">--</div><div class="timer-lbl">days</div></div>
+          <div class="timer-unit"><div class="timer-num" id="td-days">--</div><div class="timer-lbl" id="el-lbl-days">days</div></div>
           <div class="timer-sep">:</div>
-          <div class="timer-unit"><div class="timer-num" id="td-hours">--</div><div class="timer-lbl">hrs</div></div>
+          <div class="timer-unit"><div class="timer-num" id="td-hours">--</div><div class="timer-lbl" id="el-lbl-hrs">hrs</div></div>
           <div class="timer-sep">:</div>
-          <div class="timer-unit"><div class="timer-num" id="td-mins">--</div><div class="timer-lbl">min</div></div>
+          <div class="timer-unit"><div class="timer-num" id="td-mins">--</div><div class="timer-lbl" id="el-lbl-min">min</div></div>
           <div class="timer-sep">:</div>
-          <div class="timer-unit"><div class="timer-num" id="td-secs">--</div><div class="timer-lbl">sec</div></div>
+          <div class="timer-unit"><div class="timer-num" id="td-secs">--</div><div class="timer-lbl" id="el-lbl-sec">sec</div></div>
         </div>
         <div class="timer-expired" id="timer-expired" style="display:none"><span id="el-timer-expired">⚠️ Estimated freshness window has passed</span></div>
         <div class="timer-progress">
           <div class="timer-progress-track"><div class="timer-progress-fill" id="timer-prog-fill" style="width:100%;background:#4ADE80;"></div></div>
-          <div class="timer-prog-lbl"><span>Purchased</span><span id="timer-prog-pct">100%</span><span>Expires</span></div>
+          <div class="timer-prog-lbl"><span id="el-lbl-purchased">Purchased</span><span id="timer-prog-pct">100%</span><span id="el-lbl-expires">Expires</span></div>
         </div>
       </div>
       <div class="gauge-wrap">
@@ -685,12 +681,12 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
   </section>
 
   <section>
-    <div class="section-title"><span>💡</span> Storage Tips</div>
+    <div class="section-title"><span>💡</span> <span id="el-section-tips">Storage Tips</span></div>
     <div class="tips-grid">
-      <div class="tip-card"><div class="tip-icon">☀️</div><div class="tip-title">PH Heat</div><div class="tip-text">30°C+ and 80% humidity make bread spoil 2× faster. Keep away from sunlight.</div></div>
-      <div class="tip-card"><div class="tip-icon">❄️</div><div class="tip-title">Freeze It</div><div class="tip-text">Pandesal, ensaymada, monay freeze well. Separate before freezing.</div></div>
-      <div class="tip-card"><div class="tip-icon">🫙</div><div class="tip-title">Biscocho & Hopia</div><div class="tip-text">Dry breads last 2–3 weeks sealed airtight.</div></div>
-      <div class="tip-card"><div class="tip-icon">🧊</div><div class="tip-title">Chill Fillings</div><div class="tip-text">Cream, custard, coconut fillings must be refrigerated within 2 hours.</div></div>
+      <div class="tip-card"><div class="tip-icon">☀️</div><div class="tip-title" id="el-tip1-title">PH Heat</div><div class="tip-text" id="el-tip1-text">30°C+ and 80% humidity make bread spoil 2× faster. Keep away from sunlight.</div></div>
+      <div class="tip-card"><div class="tip-icon">❄️</div><div class="tip-title" id="el-tip2-title">Freeze It</div><div class="tip-text" id="el-tip2-text">Pandesal, ensaymada, monay freeze well. Separate before freezing.</div></div>
+      <div class="tip-card"><div class="tip-icon">🫙</div><div class="tip-title" id="el-tip3-title">Biscocho & Hopia</div><div class="tip-text" id="el-tip3-text">Dry breads last 2–3 weeks sealed airtight.</div></div>
+      <div class="tip-card"><div class="tip-icon">🧊</div><div class="tip-title" id="el-tip4-title">Chill Fillings</div><div class="tip-text" id="el-tip4-text">Cream, custard, coconut fillings must be refrigerated within 2 hours.</div></div>
     </div>
   </section>
 </div>
@@ -698,8 +694,8 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
 <!-- ===== BAKERIES PAGE ===== -->
 <div class="page-section" id="page-bakeries">
   <div class="page-hero" style="background:linear-gradient(150deg,var(--crust-dark),#6B3512,var(--crust-light));">
-    <div class="page-hero-title" style="color:var(--wheat-light);">🏪 Partner Bakeries</div>
-    <div class="page-hero-sub" style="color:rgba(240,208,138,.7);">Discover and scan products from verified Filipino bakeries</div>
+    <div class="page-hero-title" style="color:var(--wheat-light);" id="el-bakeries-title">🏪 Partner Bakeries</div>
+    <div class="page-hero-sub" style="color:rgba(240,208,138,.7);" id="el-bakeries-sub">Discover and scan products from verified Filipino bakeries</div>
   </div>
   <section>
     <div id="all-bakeries-list">
@@ -721,8 +717,8 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
 <!-- ===== TIPS PAGE ===== -->
 <div class="page-section" id="page-tips">
   <div class="page-hero" style="background:linear-gradient(150deg,#14532D,#15803D);">
-    <div class="page-hero-title" style="color:#D1FAE5;">Paano itago ang tinapay?</div>
-    <div class="page-hero-sub" style="color:rgba(209,250,229,.7);">Storage and safety tips for every Filipino bread</div>
+    <div class="page-hero-title" style="color:#D1FAE5;" id="el-tips-page-title">Paano itago ang tinapay?</div>
+    <div class="page-hero-sub" style="color:rgba(209,250,229,.7);" id="el-tips-page-sub">Storage and safety tips for every Filipino bread</div>
   </div>
   <section>
     <div class="chart-title"><span>🌡️</span> General Rules</div>
@@ -738,8 +734,8 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
 <!-- ===== STATS PAGE ===== -->
 <div class="page-section" id="page-stats">
   <div class="page-hero" style="background:linear-gradient(150deg,var(--crust-dark),var(--crust));">
-    <div class="page-hero-title" style="color:var(--wheat-light);">Filipino Bread Statistics</div>
-    <div class="page-hero-sub" style="color:rgba(240,208,138,.7);">Shelf life data for all 28 breads</div>
+    <div class="page-hero-title" style="color:var(--wheat-light);" id="el-stats-title">Filipino Bread Statistics</div>
+    <div class="page-hero-sub" style="color:rgba(240,208,138,.7);" id="el-stats-sub">Shelf life data for all 28 breads</div>
   </div>
   <section>
     <div class="chart-title"><span>📊</span> Counter Shelf Life</div>
@@ -767,14 +763,13 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
     <div class="about-card">
       <div class="about-logo">🍞 BreadWatch</div>
       <div class="about-version">Version 2.1 · Subscription Platform</div>
-      <div class="about-desc"><span id="el-about-desc">AI-powered freshness tracker for Filipino breads. Partner with local bakeries for QR-based freshness tracking.</span
-> freshness tracker for Filipino breads. Partner with local bakeries for QR-based freshness tracking.</div>
+      <div class="about-desc" id="el-about-desc">AI-powered freshness tracker for Filipino breads. Partner with local bakeries for QR-based freshness tracking.</div>
     </div>
     <div class="settings-group">
       <div class="settings-group-title" id="el-grp-lang">🌏 Language / Wika</div>
       <div class="setting-row">
         <div class="setting-info"><div class="setting-label" id="el-setting-lang-label">Display Language</div><div class="setting-desc" id="el-setting-lang-desc">Switch between English and Filipino</div></div>
-        <div class="lang-toggle"><div class="lang-opt active" id="lang-en" onclick="setLanguage('en')">EN</div><div class="lang-opt" id="lang-fil" onclick="setLanguage('fil')">FIL</div></div>
+        <div class="lang-toggle"><div class="lang-opt active" id="lang-en" onclick="setLang('en')">EN</div><div class="lang-opt" id="lang-fil" onclick="setLang('fil')">FIL</div></div>
       </div>
     </div>
     <div class="settings-group">
@@ -831,18 +826,14 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
 </div>
 
 <div class="bottom-nav">
-  <div class="nav-item active" onclick="showSection('analyze')"><div class="nav-icon">🔍</div><div class="nav-label">Tracker</div></div>
-  <div class="nav-item" onclick="showSection('bakeries')"><div class="nav-icon">🏪</div><div class="nav-label">Bakeries</div></div>
-  <div class="nav-item" onclick="showSection('tips')"><div class="nav-icon">💡</div><div class="nav-label">Tips</div></div>
-  <div class="nav-item" onclick="showSection('stats')"><div class="nav-icon">📊</div><div class="nav-label">Stats</div></div>
-  <div class="nav-item" onclick="showSection('settings')"><div class="nav-icon">⚙️</div><div class="nav-label">Settings</div></div>
+  <div class="nav-item active" onclick="showSection('analyze')"><div class="nav-icon">🔍</div><div class="nav-label" id="el-nav-tracker">Tracker</div></div>
+  <div class="nav-item" onclick="showSection('bakeries')"><div class="nav-icon">🏪</div><div class="nav-label" id="el-nav-bakeries">Bakeries</div></div>
+  <div class="nav-item" onclick="showSection('tips')"><div class="nav-icon">💡</div><div class="nav-label" id="el-nav-tips">Tips</div></div>
+  <div class="nav-item" onclick="showSection('stats')"><div class="nav-icon">📊</div><div class="nav-label" id="el-nav-stats">Stats</div></div>
+  <div class="nav-item" onclick="showSection('settings')"><div class="nav-icon">⚙️</div><div class="nav-label" id="el-nav-settings">Settings</div></div>
 </div>
 
 <script>
-// ============================================================
-// FIREBASE CONFIG — Replace with your actual Firebase config
-// after creating project at console.firebase.google.com
-// ============================================================
 const firebaseConfig = {
   apiKey: "AIzaSyBwj0wxllHWOAOYY1x1e39pAWWj8BSwZcs",
   authDomain: "breadwatch-e5085.firebaseapp.com",
@@ -1717,32 +1708,113 @@ function setLang(l) {
 }
 
 function applyLang() {
-  const L = _lang;
-  // Helper — set text if el exists
-  const tx = (id, key) => { const el=document.getElementById(id); if(el) el.textContent=s(key); };
-  const ht = (id, key) => { const el=document.getElementById(id); if(el) el.innerHTML=s(key); };
+  const tx = (id,key) => { const el=document.getElementById(id); if(el&&!el.disabled) el.textContent=s(key); };
+  const ht = (id,key) => { const el=document.getElementById(id); if(el) el.innerHTML=s(key); };
+  const ph = (id,key) => { const el=document.getElementById(id); if(el) el.placeholder=s(key); };
+  const setOpts = (selId,keys) => { const sel=document.getElementById(selId); if(!sel)return; Array.from(sel.options).forEach((o,i)=>{ if(keys[i]) o.text=s(keys[i]); }); };
 
+  // Logo & header
+  tx('el-logo-tag','setting-lang-label'); // reuse "Freshness Tracker" — no key, skip
+  tx('el-btn-for-bakeries','btn-for-bakeries');
   // Hero
   ht('hero-title-el','hero-title');
   tx('hero-sub-el','hero-sub');
   tx('hero-badge-el','hero-badge');
-
-  // Bottom nav labels
-  ['tracker','bakeries','tips','stats','settings'].forEach((n,i) => {
-    const els = document.querySelectorAll('.nav-label');
-    if(els[i]) els[i].textContent = s('nav-'+n);
-  });
-
-  // Section titles & tabs — use data-key attributes approach
-  document.querySelectorAll('[data-lang]').forEach(el => {
-    const key = el.getAttribute('data-lang');
-    if(key) {
-      if(el.getAttribute('data-html')) el.innerHTML = s(key);
-      else el.textContent = s(key);
-    }
-  });
-
-  // Settings page strings
+  tx('el-btn-scan-qr','btn-scan-qr');
+  tx('el-btn-browse','btn-browse');
+  tx('el-stat-bakeries-lbl','stat-bakeries-lbl');
+  tx('el-stat-products-lbl','stat-products-lbl');
+  tx('el-stat-types-lbl','stat-types-lbl');
+  // Nav
+  tx('el-nav-tracker','nav-tracker');
+  tx('el-nav-bakeries','nav-bakeries');
+  tx('el-nav-tips','nav-tips');
+  tx('el-nav-stats','nav-stats');
+  tx('el-nav-settings','nav-settings');
+  // Sections
+  tx('el-section-featured','section-featured');
+  tx('el-section-tracker','section-tracker');
+  tx('el-section-tips','section-tips');
+  tx('el-section-report','section-report');
+  // Tabs
+  tx('el-tab-scan','tab-scan');
+  tx('el-tab-manual','tab-manual');
+  tx('el-tab-library','tab-library');
+  // Scan area
+  tx('el-scan-text','scan-text');
+  tx('el-scan-sub','scan-sub');
+  tx('el-btn-camera','btn-camera');
+  tx('el-btn-upload','btn-upload');
+  tx('el-btn-capture','btn-capture');
+  tx('el-btn-cancel','btn-cancel');
+  tx('el-btn-analyze-img','btn-analyze-img');
+  tx('el-btn-retake','btn-retake');
+  // Manual form labels
+  tx('el-form-sec-bread', _lang==='fil'?'el-form-sec-bread':'el-form-sec-bread'); // static
+  const formSecBread = document.getElementById('el-form-sec-bread');
+  if(formSecBread) formSecBread.textContent = _lang==='fil'?'🍞 Impormasyon ng Tinapay':'🍞 Bread Information';
+  const formSecCond = document.getElementById('el-form-sec-cond');
+  if(formSecCond) formSecCond.textContent = _lang==='fil'?'👁️ Kondisyon':'👁️ Condition';
+  tx('el-lbl-bread-type','lbl-bread-type');
+  tx('el-lbl-storage','lbl-storage');
+  tx('el-lbl-date','lbl-date');
+  tx('el-lbl-time','lbl-time');
+  tx('el-lbl-mold','lbl-mold');
+  tx('el-lbl-texture','lbl-texture');
+  tx('el-lbl-smell','lbl-smell');
+  tx('el-lbl-color','lbl-color');
+  tx('el-lbl-filling','lbl-filling');
+  tx('el-lbl-climate','lbl-climate');
+  tx('el-lbl-pkg','lbl-pkg');
+  tx('el-lbl-source','lbl-source');
+  // Dropdowns
+  const btEl = document.getElementById('bread-type');
+  if(btEl && btEl.options[0]) btEl.options[0].text = s('ph-select');
+  setOpts('storage-method',['opt-counter','opt-bread-box','opt-plastic','opt-paper','opt-open','opt-fridge','opt-freezer','opt-airtight']);
+  setOpts('mold',['opt-no-mold','opt-mold-spot','opt-mold-multi','opt-mold-spread','opt-mold-ext']);
+  setOpts('texture',['opt-soft','opt-firm','opt-stale','opt-very-hard','opt-wet']);
+  setOpts('smell',['opt-fresh-smell','opt-neutral','opt-yeasty','opt-slightly-off','opt-sour','opt-musty','opt-rancid']);
+  setOpts('color-change',['opt-normal-color','opt-dark','opt-green','opt-white-fuzzy','opt-yellow','opt-black']);
+  setOpts('filling',['opt-no-fill','opt-fill-ok','opt-fill-dry','opt-fill-wet','opt-fill-sour','opt-fill-discolor']);
+  setOpts('climate',['opt-hot','opt-rainy','opt-aircon','opt-cool']);
+  setOpts('opened',['opt-sealed','opt-opened','opt-partial']);
+  setOpts('bread-source',['opt-panaderia','opt-supermarket','opt-homemade','opt-bakeshop']);
+  // Analyze button
+  tx('el-btn-get-report','btn-get-report');
+  // Results
+  tx('el-lbl-live-timer','lbl-live-timer');
+  tx('el-lbl-days','lbl-days');
+  tx('el-lbl-hrs','lbl-hrs');
+  tx('el-lbl-min','lbl-min');
+  tx('el-lbl-sec','lbl-sec');
+  tx('el-timer-expired','timer-expired');
+  tx('el-lbl-purchased','lbl-purchased');
+  tx('el-lbl-expires','lbl-expires');
+  tx('el-overall-fresh-lbl','lbl-overall');
+  tx('el-sub-safety-lbl','lbl-safety');
+  tx('el-sub-taste-lbl','lbl-taste');
+  tx('el-sub-texture-lbl','lbl-texture-sub');
+  tx('el-sub-mold-lbl','lbl-mold-risk');
+  tx('el-stat-use-by-lbl','lbl-use-by');
+  tx('el-stat-storage-lbl','lbl-storage-lbl');
+  tx('el-stat-safety-lbl','lbl-safety-status');
+  tx('el-stat-source-lbl','lbl-source-lbl');
+  tx('el-timeline-title','timeline-title');
+  // Tips cards
+  tx('el-tip1-title','tip1-title'); tx('el-tip1-text','tip1-text');
+  tx('el-tip2-title','tip2-title'); tx('el-tip2-text','tip2-text');
+  tx('el-tip3-title','tip3-title'); tx('el-tip3-text','tip3-text');
+  tx('el-tip4-title','tip4-title'); tx('el-tip4-text','tip4-text');
+  // Bakeries page
+  tx('el-bakeries-title','bakeries-title');
+  tx('el-bakeries-sub','bakeries-sub');
+  // Tips page hero
+  tx('el-tips-page-title','tips-page-title');
+  tx('el-tips-page-sub','tips-page-sub');
+  // Stats page
+  tx('el-stats-title','stats-title');
+  tx('el-stats-sub','stats-sub');
+  // Settings
   tx('el-settings-title','settings-title');
   tx('el-settings-sub','settings-sub');
   tx('el-about-desc','about-desc');
@@ -1756,71 +1828,17 @@ function applyLang() {
   tx('el-setting-ph-desc','setting-ph-desc');
   tx('el-grp-bakery','grp-bakery');
   tx('el-setting-bakery-label','setting-bakery-label');
-  tx('el-setting-bakery-desc','setting-bakery-desc');
-  tx('el-setting-bakery-btn','setting-bakery-btn');
-  tx('el-grp-install','grp-install');
   tx('el-setting-install-label','setting-install-label');
   tx('el-setting-install-desc','setting-install-desc');
-  tx('el-setting-install-btn','setting-install-btn');
-
-  // Results section
-  tx('result-timer-label','lbl-live-timer');
-  tx('el-td-days-lbl','lbl-days');
-  tx('el-td-hrs-lbl','lbl-hrs');
-  tx('el-td-min-lbl','lbl-min');
-  tx('el-td-sec-lbl','lbl-sec');
-  tx('el-timer-expired','timer-expired');
-  tx('el-purchased-lbl','lbl-purchased');
-  tx('el-expires-lbl','lbl-expires');
-  tx('el-overall-fresh-lbl','lbl-overall');
-  tx('el-sub-safety-lbl','lbl-safety');
-  tx('el-sub-taste-lbl','lbl-taste');
-  tx('el-sub-texture-lbl','lbl-texture-sub');
-  tx('el-sub-mold-lbl','lbl-mold-risk');
-  tx('el-stat-use-by-lbl','lbl-use-by');
-  tx('el-stat-storage-lbl','lbl-storage-lbl');
-  tx('el-stat-safety-lbl','lbl-safety-status');
-  tx('el-stat-source-lbl','lbl-source-lbl');
-  tx('el-timeline-title','timeline-title');
-
-  // Notification panel
+  // Notifications
   tx('el-notif-title','notif-title');
-
+  tx('el-notif-empty','notif-empty');
   // QR modal
   tx('el-qr-modal-title','qr-modal-title');
   tx('el-qr-hint','qr-hint');
-
-  // Manual form selects & labels
-  const setOpts = (selId, opts) => {
-    const sel = document.getElementById(selId);
-    if(!sel) return;
-    Array.from(sel.options).forEach((opt,i) => { if(opts[i]) opt.text = s(opts[i]); });
-  };
-  tx('el-lbl-bread-type','lbl-bread-type');
-  const btEl = document.getElementById('bread-type');
-  if(btEl && btEl.options[0]) btEl.options[0].text = s('ph-select');
-  tx('el-lbl-storage','lbl-storage');
-  setOpts('storage-method',['opt-counter','opt-bread-box','opt-plastic','opt-paper','opt-open','opt-fridge','opt-freezer','opt-airtight']);
-  tx('el-lbl-date','lbl-date'); tx('el-lbl-time','lbl-time');
-  tx('el-lbl-mold','lbl-mold');
-  setOpts('mold',['opt-no-mold','opt-mold-spot','opt-mold-multi','opt-mold-spread','opt-mold-ext']);
-  tx('el-lbl-texture','lbl-texture');
-  setOpts('texture',['opt-soft','opt-firm','opt-stale','opt-very-hard','opt-wet']);
-  tx('el-lbl-smell','lbl-smell');
-  setOpts('smell',['opt-fresh-smell','opt-neutral','opt-yeasty','opt-slightly-off','opt-sour','opt-musty','opt-rancid']);
-  tx('el-lbl-color','lbl-color');
-  setOpts('color-change',['opt-normal-color','opt-dark','opt-green','opt-white-fuzzy','opt-yellow','opt-black']);
-  tx('el-lbl-filling','lbl-filling');
-  setOpts('filling',['opt-no-fill','opt-fill-ok','opt-fill-dry','opt-fill-wet','opt-fill-sour','opt-fill-discolor']);
-  tx('el-lbl-climate','lbl-climate');
-  setOpts('climate',['opt-hot','opt-rainy','opt-aircon','opt-cool']);
-  tx('el-lbl-pkg','lbl-pkg');
-  setOpts('opened',['opt-sealed','opt-opened','opt-partial']);
-  tx('el-lbl-source','lbl-source');
-  setOpts('bread-source',['opt-panaderia','opt-supermarket','opt-homemade','opt-bakeshop']);
-
-  const btn = document.querySelector('.btn-analyze');
-  if(btn) btn.textContent = s('btn-get-report');
+  // Update settings lang toggle state
+  document.getElementById('lang-en').classList.toggle('active', _lang==='en');
+  document.getElementById('lang-fil').classList.toggle('active', _lang==='fil');
 }let deferredPrompt;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;});
 function triggerInstall(){if(deferredPrompt){deferredPrompt.prompt();}else{showToast('Use Share → Add to Home Screen');}}
