@@ -335,10 +335,11 @@ function bakeryRowHTML(b, showActivate = false) {
       <div class="bakery-meta">${b.email || ''} · ${b.address || ''} · Signed up: ${date}</div>
     </div>
     <div class="bakery-actions">
-      ${!b.subscriptionActive ? `<button class="action-btn btn-activate" onclick="activateBakery('${b.id}','${b.bakeryName}')">✓ Activate</button>` : `<button class="action-btn btn-deactivate" onclick="deactivateBakery('${b.id}','${b.bakeryName}')">✕ Deactivate</button>`}
-      ${!b.verified ? `<button class="action-btn btn-verify" onclick="verifyBakery('${b.id}','${b.bakeryName}')">🏅 Verify</button>` : ''}
+      ${!b.subscriptionActive ? `<button class="action-btn btn-activate" onclick="activateBakery('${b.id}')">✓ Activate</button>` : `<button class="action-btn btn-deactivate" onclick="deactivateBakery('${b.id}')">✕ Deactivate</button>`}
+      ${!b.verified ? `<button class="action-btn btn-verify" onclick="verifyBakery('${b.id}')">🏅 Verify</button>`
+                    : `<button class="action-btn btn-deactivate" onclick="unverifyBakery('${b.id}')">✕ Unverify</button>`}
       <button class="action-btn btn-view" onclick="viewBakeryDetails('${b.id}')">👁️ Details</button>
-      <button class="action-btn btn-delete" onclick="deleteBakery('${b.id}','${b.bakeryName}')">🗑️</button>
+      <button class="action-btn btn-delete" onclick="deleteBakery('${b.id}')">🗑️</button>
     </div>
   </div>`;
 }
@@ -374,8 +375,10 @@ async function loadNotifications() {
           </div>
           <div class="notif-time">${date}</div>
           ${isNewSignup && n.userId ? `<div class="notif-actions">
-            <button class="action-btn btn-activate" onclick="activateBakery('${n.userId}','${n.bakeryName}')">✓ Activate Account</button>
-            <button class="action-btn btn-verify" onclick="verifyBakery('${n.userId}','${n.bakeryName}')">🏅 Verify</button>
+            <button class="action-btn btn-activate" onclick="activateBakery('${n.userId}')">✓ Activate Account</button>
+            ${allbakeries.find(b => b.id === n.userId)?.verified
+              ? `<button class="action-btn btn-deactivate" onclick="unverifyBakery('${n.userId}')">✕ Unverify</button>`
+              : `<button class="action-btn btn-verify" onclick="verifyBakery('${n.userId}')">🏅 Verify</button>`}
           </div>` : ''}
         </div>
       </div>`;
@@ -408,45 +411,71 @@ function renderRevenue() {
 // ============================================================
 // ACTIONS
 // ============================================================
-async function activateBakery(id, name) {
+async function activateBakery(id) {
+  const bakery = allBakeries.find(b => b.id === id);
+  const name = bakery?.bakeryName || 'this bakery';
   if (!confirm(`Activate subscription for "${name}"?\n\nThis confirms you have received their ₱99 GCash payment.`)) return;
   try {
-    await db.collection('bakeries').doc(id).update({ subscriptionActive: true, subscriptionStart: firebase.firestore.FieldValue.serverTimestamp() });
-    const idx = allBakeries.findIndex(b => b.id === id);
-    if (idx !== -1) allBakeries[idx].subscriptionActive = true;
+    await db.collection('bakeries').doc(id).update({ 
+      subscriptionActive: true, 
+      subscriptionStart: firebase.firestore.FieldValue.serverTimestamp() 
+    });
+    if (bakery) bakery.subscriptionActive = true;
     showToast('✓ ' + name + ' subscription activated!');
     renderOverview(); renderBakeries(allBakeries); renderRevenue();
   } catch(e) { showToast('Error: ' + e.message); }
 }
 
-async function deactivateBakery(id, name) {
-  if (!confirm(`Deactivate subscription for "${name}"?\n\nThey will lose access to their dashboard.`)) return;
+async function deactivateBakery(id) {
+  const bakery = allBakeries.find(b => b.id === id);
+  const name = bakery?.bakeryName || 'this bakery';
+  if (!confirm(`Deactivate subscription for "${name}"?`)) return;
   try {
-    await db.collection('bakeries').doc(id).update({ subscriptionActive: false });
-    const idx = allBakeries.findIndex(b => b.id === id);
-    if (idx !== -1) allBakeries[idx].subscriptionActive = false;
-    showToast('✓ ' + name + ' deactivated.');
+    await db.collection('bakeries').doc(id).update({ 
+      subscriptionActive: false 
+    });
+    if (bakery) bakery.subscriptionActive = false;
+    showToast('✕ ' + name + ' deactivated!');
     renderOverview(); renderBakeries(allBakeries); renderRevenue();
   } catch(e) { showToast('Error: ' + e.message); }
 }
 
-async function verifyBakery(id, name) {
-  if (!confirm(`Mark "${name}" as a verified partner bakery?\n\nThis adds a verified badge to their storefront.`)) return;
+async function verifyBakery(id) {
+  const bakery = allBakeries.find(b => b.id === id);
+  const name = bakery?.bakeryName || 'this bakery';
+  if (!confirm(`Verify "${name}"?`)) return;
   try {
-    await db.collection('bakeries').doc(id).update({ verified: true });
-    const idx = allBakeries.findIndex(b => b.id === id);
-    if (idx !== -1) allBakeries[idx].verified = true;
+    await db.collection('bakeries').doc(id).update({ 
+      verified: true 
+    });
+    if (bakery) bakery.verified = true;
     showToast('🏅 ' + name + ' verified!');
     renderOverview(); renderBakeries(allBakeries);
   } catch(e) { showToast('Error: ' + e.message); }
 }
 
-async function deleteBakery(id, name) {
-  if (!confirm(`⚠️ PERMANENTLY DELETE "${name}"?\n\nThis removes the bakery, all products, and all data. This cannot be undone.`)) return;
+async function unverifyBakery(id) {
+  const bakery = allBakeries.find(b => b.id === id);
+  const name = bakery?.bakeryName || 'this bakery';
+  if (!confirm(`Remove verification from "${name}"?`)) return;
+  try {
+    await db.collection('bakeries').doc(id).update({ 
+      verified: false 
+    });
+    if (bakery) bakery.verified = false;
+    showToast('✕ ' + name + ' unverified!');
+    renderOverview(); renderBakeries(allBakeries);
+  } catch(e) { showToast('Error: ' + e.message); }
+}
+
+async function deleteBakery(id) {
+  const bakery = allBakeries.find(b => b.id === id);
+  const name = bakery?.bakeryName || 'this bakery';
+  if (!confirm(`Permanently delete "${name}"?\n\nThis cannot be undone!`)) return;
   try {
     await db.collection('bakeries').doc(id).delete();
     allBakeries = allBakeries.filter(b => b.id !== id);
-    showToast('✓ Bakery deleted.');
+    showToast('🗑️ ' + name + ' deleted!');
     renderOverview(); renderBakeries(allBakeries); renderRevenue();
   } catch(e) { showToast('Error: ' + e.message); }
 }
