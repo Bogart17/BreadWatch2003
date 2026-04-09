@@ -8,7 +8,10 @@ const ASSETS = [
   '/BreadWatch2003/admin.html',
   '/BreadWatch2003/sw.js',
   '/BreadWatch2003/icon-192.png',
-  '/BreadWatch2003/icon-512.png'
+  '/BreadWatch2003/icon-512.png',
+  '/BreadWatch2003/favicon.ico',
+  '/BreadWatch2003/favicon-16x16.png',
+  '/BreadWatch2003/favicon-32x32.png'
 ];
 
 self.addEventListener('install', (event) => {
