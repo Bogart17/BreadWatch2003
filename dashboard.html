@@ -12,6 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 <style>
 :root{--cream:#FAF6EE;--warm-white:#FDF9F3;--crust:#8B4513;--crust-light:#C4783A;--crust-dark:#4A2209;--wheat:#D4A855;--wheat-light:#F0D08A;--wheat-pale:#FBF0D0;--text-dark:#1C0F05;--text-mid:#4A3728;--text-muted:#8B7355;--border:rgba(139,69,19,0.15);--shadow:rgba(44,26,14,0.08);--fresh:#2D6A4F;--warn:#D97706;--danger:#B91C1C;}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -149,6 +150,36 @@ textarea.form-input{resize:none;height:70px;}
 .toggle input:checked+.toggle-slider{background:var(--crust);}
 .toggle input:checked+.toggle-slider::before{transform:translateX(20px);}
 
+/* IMAGE UPLOAD */
+.img-upload-wrap{width:100%;border:2px dashed var(--border);border-radius:14px;overflow:hidden;background:var(--warm-white);transition:border-color .2s;position:relative;}
+.img-upload-wrap:hover{border-color:var(--crust-light);}
+.img-upload-wrap.has-image{border-style:solid;border-color:var(--wheat);}
+.img-preview-area{width:100%;height:180px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:var(--wheat-pale);}
+.img-preview{width:100%;height:100%;object-fit:cover;display:none;}
+.img-preview.visible{display:block;}
+.img-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;height:100%;cursor:pointer;padding:1rem;width:100%;}
+.img-placeholder.hidden{display:none;}
+.img-placeholder-icon{font-size:2.5rem;opacity:.5;}
+.img-placeholder-text{font-size:.82rem;font-weight:600;color:var(--text-muted);text-align:center;}
+.img-placeholder-sub{font-size:.7rem;color:var(--text-muted);opacity:.7;text-align:center;}
+.img-actions{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--border);background:white;}
+.img-action-btn{flex:1;padding:7px 8px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--warm-white);color:var(--text-mid);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.img-action-btn:hover{border-color:var(--crust);color:var(--crust-dark);}
+.img-action-btn.remove{border-color:#FECACA;color:#DC2626;}
+.img-action-btn.remove:hover{background:#FEE2E2;}
+.img-upload-progress{height:4px;background:#F3F4F6;border-radius:50px;overflow:hidden;margin:0 10px 8px;display:none;}
+.img-upload-progress.visible{display:block;}
+.img-upload-progress-fill{height:100%;background:linear-gradient(90deg,var(--crust-light),var(--wheat));border-radius:50px;transition:width .3s ease;width:0%;}
+.img-upload-status{font-size:.7rem;color:var(--text-muted);text-align:center;padding:0 10px 6px;display:none;}
+.img-upload-status.visible{display:block;}
+.img-cam-overlay{position:absolute;inset:0;background:rgba(44,26,14,.9);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:10;}
+.img-cam-overlay.visible{display:flex;}
+.img-cam-video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+.img-cam-controls{position:relative;z-index:2;display:flex;gap:8px;}
+.img-cam-btn{padding:9px 18px;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.img-cam-btn.capture{background:var(--wheat);color:var(--crust-dark);}
+.img-cam-btn.cancel{background:rgba(255,255,255,.15);color:white;border:1.5px solid rgba(255,255,255,.3);}
+
 /* EMOJI PICKER */
 .emoji-picker-wrap{position:relative;}
 .emoji-selected-display{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--warm-white);cursor:pointer;display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--text-dark);}
@@ -214,6 +245,40 @@ textarea.form-input{resize:none;height:70px;}
         <label class="form-label" id="d-lbl-bread-type">Bread Type *</label>
         <select class="form-input" id="prod-bread-key"><option value="">Select bread type</option></select>
       </div>
+      <!-- PRODUCT IMAGE UPLOAD -->
+      <div class="form-group">
+        <label class="form-label" id="d-lbl-product-image">Product Photo</label>
+        <div class="img-upload-wrap" id="img-upload-wrap">
+          <div class="img-preview-area">
+            <img id="prod-img-preview" class="img-preview" alt="Product photo">
+            <div class="img-placeholder" id="img-placeholder" onclick="triggerImgUpload()">
+              <div class="img-placeholder-icon">📸</div>
+              <div class="img-placeholder-text" id="img-placeholder-text">Tap to add product photo</div>
+              <div class="img-placeholder-sub" id="img-placeholder-sub">JPG, PNG or WEBP · Max 5MB</div>
+            </div>
+            <div class="img-cam-overlay" id="img-cam-overlay">
+              <video id="img-cam-video" class="img-cam-video" autoplay playsinline muted></video>
+              <div class="img-cam-controls">
+                <button class="img-cam-btn capture" onclick="captureProductPhoto()">📸 Capture</button>
+                <button class="img-cam-btn cancel" onclick="stopProductCamera()">✕ Cancel</button>
+              </div>
+            </div>
+          </div>
+          <div class="img-actions" id="img-actions-bar">
+            <button class="img-action-btn" onclick="triggerImgUpload()" id="btn-img-gallery">📁 Gallery</button>
+            <button class="img-action-btn" onclick="startProductCamera()" id="btn-img-camera">📷 Camera</button>
+            <button class="img-action-btn remove" onclick="removeProductImage()" id="btn-img-remove" style="display:none;">🗑️ Remove</button>
+          </div>
+          <div class="img-upload-progress" id="img-upload-progress">
+            <div class="img-upload-progress-fill" id="img-progress-fill"></div>
+          </div>
+          <div class="img-upload-status" id="img-upload-status"></div>
+        </div>
+        <input type="file" id="prod-img-input" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleProductImageSelect(event)">
+        <input type="hidden" id="prod-image-url" value="">
+        <canvas id="img-capture-canvas" style="display:none"></canvas>
+      </div>
+
       <!-- EMOJI PICKER -->
       <div class="form-group">
         <label class="form-label" id="d-lbl-emoji">Product Emoji / Icon</label>
@@ -441,6 +506,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+const storage = firebase.storage ? firebase.storage() : null;
 
 let currentUser = null;
 let bakeryData = null;
@@ -569,7 +635,7 @@ async function loadRecentFeedback() {
 function openAddProduct() {
   document.getElementById('product-modal-title').textContent = '➕ Add New Product';
   document.getElementById('editing-product-id').value = '';
-  document.getElementById('prod-name').value = ''; selectedEmoji = '🥯'; if(document.getElementById('emoji-preview')) { document.getElementById('emoji-preview').textContent = '🥯'; document.getElementById('prod-emoji').value = '🥯'; } if(document.getElementById('prod-fresh-score')) { document.getElementById('prod-fresh-score').value = 85; updateFreshnessVal(85); } if(document.getElementById('prod-allergens')) document.getElementById('prod-allergens').value = '';
+  document.getElementById('prod-name').value = ''; resetImageUploader(); selectedEmoji = '🥯'; if(document.getElementById('emoji-preview')) { document.getElementById('emoji-preview').textContent = '🥯'; document.getElementById('prod-emoji').value = '🥯'; } if(document.getElementById('prod-fresh-score')) { document.getElementById('prod-fresh-score').value = 85; updateFreshnessVal(85); } if(document.getElementById('prod-allergens')) document.getElementById('prod-allergens').value = '';
   document.getElementById('prod-bread-key').value = '';
   document.getElementById('prod-price').value = '';
   document.getElementById('prod-emoji').value = '';
@@ -599,10 +665,16 @@ function openEditProduct(productId) {
   document.getElementById('prod-description').value = p.description || '';
   document.getElementById('prod-active').checked = p.active !== false;
   document.getElementById('save-product-btn').textContent = ds('save-product-btn-edit');
+  // Load existing image
+  resetImageUploader();
+  if (p.imageUrl) {
+    document.getElementById('prod-image-url').value = p.imageUrl;
+    showImagePreview(p.imageUrl);
+  }
   document.getElementById('product-modal').classList.add('visible');
 }
 
-function closeProductModal() { document.getElementById('product-modal').classList.remove('visible'); }
+function closeProductModal() { document.getElementById('product-modal').classList.remove('visible'); stopProductCamera(); }
 
 async function saveProduct() {
   const name = document.getElementById('prod-name').value.trim();
@@ -624,17 +696,35 @@ async function saveProduct() {
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
   };
   try {
+    let finalProductData = { ...productData };
     if (editingId) {
-      await db.collection('bakeries').doc(bakeryId).collection('products').doc(editingId).update(productData);
+      // Upload new image if selected
+      if (productImageFile) {
+        const imgUrl = await uploadProductImage(editingId);
+        if (imgUrl) finalProductData.imageUrl = imgUrl;
+      }
+      // If image was removed (url cleared)
+      if (!productImageFile && !document.getElementById('prod-image-url').value && !finalProductData.imageUrl) {
+        finalProductData.imageUrl = '';
+      }
+      await db.collection('bakeries').doc(bakeryId).collection('products').doc(editingId).update(finalProductData);
       showToast(ds('toast-product-updated'));
     } else {
-      productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-      await db.collection('bakeries').doc(bakeryId).collection('products').add(productData);
+      finalProductData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      const ref = await db.collection('bakeries').doc(bakeryId).collection('products').add(finalProductData);
+      // Upload image after getting the new product ID
+      if (productImageFile) {
+        const imgUrl = await uploadProductImage(ref.id);
+        if (imgUrl) await ref.update({ imageUrl: imgUrl });
+      }
       showToast(ds('toast-product-saved'));
     }
     closeProductModal();
     await loadProducts();
-  } catch(e) { showToast('Error saving product. Please try again.'); }
+  } catch(e) {
+    showToast('Error saving product. Please try again.');
+    setImgProgress(0, '');
+  }
   btn.disabled = false; btn.textContent = editingId ? 'Update Product' : 'Save Product';
 }
 
@@ -829,6 +919,18 @@ const DASH_STRINGS = {
     'btn-edit': '✏️',
     'btn-delete': '🗑️',
     // Toast messages
+    'toast-img-too-large': '⚠️ Image too large. Max 5MB allowed.',
+    'toast-img-uploading': 'Uploading photo...',
+    'toast-img-uploaded': '✓ Photo uploaded!',
+    'toast-cam-denied': '⚠️ Camera access denied. Please use Gallery instead.',
+    'd-lbl-product-image': 'Product Photo',
+    'img-placeholder-text': 'Tap to add product photo',
+    'img-placeholder-sub': 'JPG, PNG or WEBP · Max 5MB',
+    'btn-img-gallery': '📁 Gallery',
+    'btn-img-camera': '📷 Camera',
+    'btn-img-remove': '🗑️ Remove',
+    'btn-img-capture': '📸 Capture',
+    'btn-img-cancel': '✕ Cancel',
     'toast-product-saved': '✓ Product saved!',
     'toast-product-updated': '✓ Product updated!',
     'toast-product-deleted': '✓ Product deleted.',
@@ -908,6 +1010,18 @@ const DASH_STRINGS = {
     'btn-edit': '✏️',
     'btn-delete': '🗑️',
     // Toast messages
+    'toast-img-too-large': '⚠️ Napakalaki ng larawan. Max 5MB lang.',
+    'toast-img-uploading': 'Ina-upload ang larawan...',
+    'toast-img-uploaded': '✓ Na-upload ang larawan!',
+    'toast-cam-denied': '⚠️ Hindi ma-access ang kamera. Gamitin ang Gallery.',
+    'd-lbl-product-image': 'Larawan ng Produkto',
+    'img-placeholder-text': 'Pindutin para magdagdag ng larawan',
+    'img-placeholder-sub': 'JPG, PNG o WEBP · Max 5MB',
+    'btn-img-gallery': '📁 Gallery',
+    'btn-img-camera': '📷 Kamera',
+    'btn-img-remove': '🗑️ Alisin',
+    'btn-img-capture': '📸 Kumuha',
+    'btn-img-cancel': '✕ Kanselahin',
     'toast-product-saved': '✓ Na-save ang produkto!',
     'toast-product-updated': '✓ Na-update ang produkto!',
     'toast-product-deleted': '✓ Na-delete ang produkto.',
@@ -1003,6 +1117,148 @@ function applyDashLang() {
   tx('el-btn-renew','btn-renew');
   tx('el-gcash-send-title','gcash-send-title');
   tx('el-renewal-hint','renewal-hint');
+}
+
+// ============================================================
+// PRODUCT IMAGE UPLOAD
+// ============================================================
+let productImageFile = null;
+let productCamStream = null;
+const MAX_IMG_SIZE = 5 * 1024 * 1024; // 5MB
+
+function triggerImgUpload() {
+  document.getElementById('prod-img-input').click();
+}
+
+async function handleProductImageSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > MAX_IMG_SIZE) {
+    showToast(ds('toast-img-too-large') || '⚠️ Image too large. Max 5MB.');
+    e.target.value = '';
+    return;
+  }
+  productImageFile = file;
+  showImagePreview(file);
+  // Reset input so same file can be re-selected
+  e.target.value = '';
+}
+
+function showImagePreview(source) {
+  const preview = document.getElementById('prod-img-preview');
+  const placeholder = document.getElementById('img-placeholder');
+  const removeBtn = document.getElementById('btn-img-remove');
+  const wrap = document.getElementById('img-upload-wrap');
+  if (source instanceof File || source instanceof Blob) {
+    const url = URL.createObjectURL(source);
+    preview.src = url;
+  } else {
+    // It's a URL string (existing image)
+    preview.src = source;
+  }
+  preview.classList.add('visible');
+  placeholder.classList.add('hidden');
+  removeBtn.style.display = 'flex';
+  wrap.classList.add('has-image');
+}
+
+function removeProductImage() {
+  const preview = document.getElementById('prod-img-preview');
+  const placeholder = document.getElementById('img-placeholder');
+  const removeBtn = document.getElementById('btn-img-remove');
+  const wrap = document.getElementById('img-upload-wrap');
+  preview.src = ''; preview.classList.remove('visible');
+  placeholder.classList.remove('hidden');
+  removeBtn.style.display = 'none';
+  wrap.classList.remove('has-image');
+  productImageFile = null;
+  document.getElementById('prod-image-url').value = '';
+  stopProductCamera();
+}
+
+async function startProductCamera() {
+  try {
+    productCamStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const video = document.getElementById('img-cam-video');
+    video.srcObject = productCamStream;
+    document.getElementById('img-cam-overlay').classList.add('visible');
+  } catch (err) {
+    showToast(ds('toast-cam-denied') || '⚠️ Camera access denied. Please use Gallery instead.');
+  }
+}
+
+function stopProductCamera() {
+  if (productCamStream) { productCamStream.getTracks().forEach(t => t.stop()); productCamStream = null; }
+  const video = document.getElementById('img-cam-video');
+  if (video) video.srcObject = null;
+  document.getElementById('img-cam-overlay')?.classList.remove('visible');
+}
+
+function captureProductPhoto() {
+  const video = document.getElementById('img-cam-video');
+  const canvas = document.getElementById('img-capture-canvas');
+  canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  stopProductCamera();
+  canvas.toBlob(blob => {
+    if (blob) {
+      productImageFile = new File([blob], 'product-photo.jpg', { type: 'image/jpeg' });
+      showImagePreview(blob);
+    }
+  }, 'image/jpeg', 0.9);
+}
+
+async function uploadProductImage(productId) {
+  if (!productImageFile) return null;
+  const storage = firebase.storage();
+  const path = `bakeries/${bakeryId}/products/${productId}/product-image.jpg`;
+  const ref = storage.ref(path);
+  setImgProgress(0, ds('toast-img-uploading') || 'Uploading photo...');
+  const task = ref.put(productImageFile, { contentType: productImageFile.type });
+  return new Promise((resolve, reject) => {
+    task.on('state_changed',
+      snap => {
+        const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+        setImgProgress(pct);
+      },
+      err => { setImgProgress(0, ''); reject(err); },
+      async () => {
+        const url = await task.snapshot.ref.getDownloadURL();
+        setImgProgress(100, ds('toast-img-uploaded') || '✓ Photo uploaded!');
+        setTimeout(() => setImgProgress(0, ''), 1800);
+        resolve(url);
+      }
+    );
+  });
+}
+
+async function deleteProductImage(productId) {
+  try {
+    const storage = firebase.storage();
+    const path = `bakeries/${bakeryId}/products/${productId}/product-image.jpg`;
+    await storage.ref(path).delete();
+  } catch (_) {} // Ignore if file doesn't exist
+}
+
+function setImgProgress(pct, statusText) {
+  const bar = document.getElementById('img-upload-progress');
+  const fill = document.getElementById('img-progress-fill');
+  const status = document.getElementById('img-upload-status');
+  if (pct > 0 && pct < 100) {
+    bar.classList.add('visible'); fill.style.width = pct + '%';
+  } else {
+    bar.classList.remove('visible'); fill.style.width = '0%';
+  }
+  if (statusText !== undefined) {
+    if (statusText) { status.textContent = statusText; status.classList.add('visible'); }
+    else { status.textContent = ''; status.classList.remove('visible'); }
+  }
+}
+
+function resetImageUploader() {
+  removeProductImage();
+  document.getElementById('prod-img-input').value = '';
+  setImgProgress(0, '');
 }
 
 // ============================================================
