@@ -442,27 +442,29 @@ async function deactivateBakery(id) {
 }
 
 async function verifyBakery(id) {
-  const bakery = allBakeries.find(b => b.id === id);
+  let docId = id;
+  const bakery = allBakeries.find(b => b.id === id || b.userId === id);
+  if (bakery) docId = bakery.id;
   const name = bakery?.bakeryName || 'this bakery';
   if (!confirm(`Verify "${name}"?`)) return;
   try {
-    await db.collection('bakeries').doc(id).update({ 
-      verified: true 
-    });
+    await db.collection('bakeries').doc(docId).update({ verified: true });
     if (bakery) bakery.verified = true;
     showToast('🏅 ' + name + ' verified!');
     renderOverview(); renderBakeries(allBakeries);
   } catch(e) { showToast('Error: ' + e.message); }
 }
-
+  
 async function unverifyBakery(id) {
-  const bakery = allBakeries.find(b => b.id === id);
+  // Try direct ID first, then search by userId field
+  let docId = id;
+  const bakery = allBakeries.find(b => b.id === id || b.userId === id);
+  if (bakery) docId = bakery.id;
+  
   const name = bakery?.bakeryName || 'this bakery';
   if (!confirm(`Remove verification from "${name}"?`)) return;
   try {
-    await db.collection('bakeries').doc(id).update({ 
-      verified: false 
-    });
+    await db.collection('bakeries').doc(docId).update({ verified: false });
     if (bakery) bakery.verified = false;
     showToast('✕ ' + name + ' unverified!');
     renderOverview(); renderBakeries(allBakeries);
