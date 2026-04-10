@@ -338,7 +338,7 @@ function bakeryRowHTML(b, showActivate = false) {
       ${!b.subscriptionActive ? `<button class="action-btn btn-activate" onclick="activateBakery('${b.id}')">✓ Activate</button>` : `<button class="action-btn btn-deactivate" onclick="deactivateBakery('${b.id}')">✕ Deactivate</button>`}
       ${!b.verified 
         ? `<button class="action-btn btn-verify" onclick="verifyBakery('${b.id}')">🏅 Verify</button>` 
-        : `<button class="action-btn btn-deactivate" onclick="unverifyBakery('$[b.id]')">✕ Unverify</button>`}
+        : `<button class="action-btn btn-deactivate" onclick="unverifyBakery('${b.id}')">✕ Unverify</button>`}
       <button class="action-btn btn-view" onclick="viewBakeryDetails('${b.id}')">👁️ Details</button>
       <button class="action-btn btn-delete" onclick="deleteBakery('${b.id}')">🗑️</button>
     </div>
