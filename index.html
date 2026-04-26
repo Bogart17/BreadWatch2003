@@ -939,6 +939,9 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
 </div>
 
 <script>
+
+let currentLang = localStorage.getItem('bw-lang') || 'en';
+  
 const firebaseConfig = {
   apiKey: "AIzaSyBwj0wxllHWOAOYY1x1e39pAWWj8BSwZcs",
   authDomain: "breadwatch-e5085.firebaseapp.com",
