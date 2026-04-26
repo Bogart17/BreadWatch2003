@@ -367,6 +367,43 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
 .notif-text{font-size:.78rem;color:var(--text-mid);line-height:1.4;}
 .notif-time{font-size:.65rem;color:var(--text-muted);margin-top:2px;}
 .notif-empty{padding:1.5rem;text-align:center;color:var(--text-muted);font-size:.82rem;}
+
+/* Display Old Bread */
+.btn-quick-action{
+  width:100%;
+  background:linear-gradient(135deg,#92400E,var(--crust-light));
+  color:var(--wheat-light);
+  border:none;
+  padding:11px 20px;
+  border-radius:50px;
+  font-family:'DM Sans',sans-serif;
+  font-size:.85rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .2s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+.btn-quick-action:hover{opacity:.9;transform:translateY(-1px);}
+.leftover-card{background:white;border-radius:16px;padding:1rem;border:1px solid var(--border);margin-bottom:10px;box-shadow:0 2px 8px var(--shadow);display:flex;gap:12px;align-items:center;}
+.leftover-emoji{font-size:1.8rem;flex-shrink:0;}
+.leftover-info{flex:1;}
+.leftover-name{font-size:.92rem;font-weight:600;color:var(--text-dark);}
+.leftover-meta{font-size:.72rem;color:var(--text-muted);margin-top:2px;}
+.leftover-countdown{font-size:.78rem;font-weight:600;margin-top:3px;}
+.leftover-fresh{color:var(--fresh);}
+.leftover-warn{color:var(--warn);}
+.leftover-danger{color:var(--danger);}
+.leftover-actions{display:flex;gap:6px;}
+.leftover-btn{height:28px;padding:0 10px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.7rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--warm-white);color:var(--text-mid);transition:all .2s;}
+.leftover-btn:hover{border-color:var(--crust);color:var(--crust-dark);}
+.leftover-btn.danger{border-color:#FECACA;color:#DC2626;}
+.add-leftover-form{background:white;border-radius:16px;padding:1rem;border:1.5px dashed var(--wheat);margin-bottom:10px;}
+.notif-permission-banner{background:linear-gradient(135deg,var(--crust-dark),var(--crust));border-radius:14px;padding:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:12px;}
+.notif-permission-text{flex:1;font-size:.8rem;color:var(--wheat-light);line-height:1.4;}
+.notif-permission-btn{background:var(--wheat);color:var(--crust-dark);border:none;padding:8px 14px;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -443,6 +480,14 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
   <!-- FRESHNESS TRACKER -->
   <section>
     <div class="section-title"><span>🔍</span> <span id="el-section-tracker">Freshness Tracker</span></div>
+   
+    <!-- QUICK ACTION BUTTON -->
+    <div style="margin-bottom:.85rem;">
+      <button class="btn-quick-action" onclick="quickDayOldBread()" id="el-btn-day-old">
+        🍞 Day-Old Bread Check
+      </button>
+    </div>
+
     <div class="tabs">
       <div class="tab active" id="el-tab-scan" onclick="switchTab('scan')">📷 Scan</div>
       <div class="tab" id="el-tab-manual" onclick="switchTab('manual')">✏️ Manual</div>
@@ -802,6 +847,63 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
 
 </main>
 
+<!-- LEFTOVER TRACKER PAGE -->
+<div class="page-section" id="page-leftovers">
+  <div class="page-hero" style="background:linear-gradient(150deg,#92400E,var(--crust-light));">
+    <div class="page-hero-title" style="color:var(--wheat-light);" id="el-leftover-title">🍞 Leftover Tracker</div>
+    <div class="page-hero-sub" style="color:rgba(240,208,138,.7);" id="el-leftover-sub">Track your bread before it expires</div>
+  </div>
+  <section>
+    <!-- NOTIFICATION PERMISSION BANNER -->
+    <div class="notif-permission-banner" id="notif-permission-banner" style="display:none;">
+      <div style="font-size:1.5rem;">🔔</div>
+      <div class="notif-permission-text" id="el-notif-perm-text">Enable notifications to get alerts before your bread expires!</div>
+      <button class="notif-permission-btn" onclick="requestNotifPermission()" id="el-notif-perm-btn">Enable</button>
+    </div>
+
+    <!-- ADD BREAD FORM -->
+    <div class="add-leftover-form">
+      <div class="section-title" style="margin-bottom:.75rem;"><span>➕</span> <span id="el-add-leftover-title">Add Bread to Track</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label style="font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;" id="el-leftover-lbl-type">Bread Type</label>
+          <select class="form-input" id="leftover-bread-type" style="margin-top:4px;">
+            <option value="">Select type</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;" id="el-leftover-lbl-storage">Storage</label>
+          <select class="form-input" id="leftover-storage" style="margin-top:4px;">
+            <option value="counter">Counter</option>
+            <option value="fridge">Fridge</option>
+            <option value="freezer">Freezer</option>
+            <option value="plastic-bag">Plastic Bag</option>
+            <option value="airtight">Airtight Container</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <label style="font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;" id="el-leftover-lbl-date">Purchase Date & Time</label>
+        <input type="datetime-local" class="form-input" id="leftover-datetime" style="margin-top:4px;">
+      </div>
+      <div style="margin-bottom:10px;">
+        <label style="font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;" id="el-leftover-lbl-name">Custom Name (optional)</label>
+        <input type="text" class="form-input" id="leftover-custom-name" placeholder="e.g. Morning pandesal" style="margin-top:4px;">
+      </div>
+      <button class="btn-analyze" onclick="addLeftover()" id="el-btn-add-leftover">🍞 Track This Bread</button>
+    </div>
+
+    <!-- TRACKED BREADS LIST -->
+    <div class="section-title"><span>📋</span> <span id="el-tracked-title">Tracked Breads</span></div>
+    <div id="leftover-list">
+      <div class="empty-state">
+        <div style="font-size:2.5rem;margin-bottom:.5rem;">🍞</div>
+        No bread being tracked yet. Add some above!
+      </div>
+    </div>
+  </section>
+</div>
+  
 <!-- QR SCANNER MODAL -->
 <div class="modal-overlay" id="qr-modal">
   <div class="modal">
@@ -831,6 +933,9 @@ select:focus,input:focus,textarea:focus{outline:none;border-color:var(--crust);b
   <div class="nav-item" onclick="showSection('tips')"><div class="nav-icon">💡</div><div class="nav-label" id="el-nav-tips">Tips</div></div>
   <div class="nav-item" onclick="showSection('stats')"><div class="nav-icon">📊</div><div class="nav-label" id="el-nav-stats">Stats</div></div>
   <div class="nav-item" onclick="showSection('settings')"><div class="nav-icon">⚙️</div><div class="nav-label" id="el-nav-settings">Settings</div></div>
+  <div class="nav-item" onclick="showSection('leftovers')">
+  <div class="nav-icon">🗂️</div>
+  <div class="nav-label" id="el-nav-leftovers">Leftovers</div>
 </div>
 
 <script>
@@ -1391,6 +1496,7 @@ function showSection(s){
   if(s==='stats')renderStatsPage();
   if(s==='bakeries')loadAllBakeries();
   if(s==='library')renderLibrary();
+  if (s === 'leftovers') {setDefaultDatetime();renderLeftovers();checkNotifPermission();}
 }
 function switchTab(tab){
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['scan','manual','library'][i]===tab));
@@ -1556,6 +1662,20 @@ en:{
   'toast-bakery-nf':'Bakery not found.',
   'toast-error':'Error loading product.',
   'toast-install':'Use Share → Add to Home Screen',
+  // Leftover 
+  'btn-day-old': '🍞 Day-Old Bread Check',
+  'leftover-title': '🍞 Leftover Tracker',
+  'leftover-sub': 'Track your bread before it expires',
+  'add-leftover-title': 'Add Bread to Track',
+  'tracked-title': 'Tracked Breads',
+  'leftover-lbl-type': 'Bread Type',
+  'leftover-lbl-storage': 'Storage',
+  'leftover-lbl-date': 'Purchase Date & Time',
+  'leftover-lbl-name': 'Custom Name (optional)',
+  'btn-add-leftover': '🍞 Track This Bread',
+  'nav-leftovers': 'Leftovers',
+  'notif-perm-text': 'Enable notifications to get alerts before your bread expires!',
+  'notif-perm-btn': 'Enable',
 },
 fil:{
   // Hero
@@ -1689,6 +1809,20 @@ fil:{
   'toast-bakery-nf':'Hindi natagpuan ang panaderia.',
   'toast-error':'Error sa pag-load ng produkto.',
   'toast-install':'Gamitin ang Share → Add to Home Screen',
+  // Leftover 
+  'btn-day-old': '🍞 Day-Old na Tinapay',
+  'leftover-title': '🍞 Leftover Tracker',
+  'leftover-sub': 'Subaybayan ang iyong tinapay bago mag-expire',
+  'add-leftover-title': 'Magdagdag ng Tinapay',
+  'tracked-title': 'Mga Tinapay na Tina-track',
+  'leftover-lbl-type': 'Uri ng Tinapay',
+  'leftover-lbl-storage': 'Paraan ng Pag-iimbak',
+  'leftover-lbl-date': 'Petsa at Oras ng Pagbili',
+  'leftover-lbl-name': 'Pangalan (opsyonal)',
+  'btn-add-leftover': '🍞 I-track ang Tinapay',
+  'nav-leftovers': 'Mga Natira',
+  'notif-perm-text': 'I-enable ang notifications para maabisuhan bago mag-expire ang tinapay!',
+  'notif-perm-btn': 'I-enable',
 }
 };
 
@@ -1845,10 +1979,230 @@ function triggerInstall(){if(deferredPrompt){deferredPrompt.prompt();}else{showT
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 // ============================================================
+// QUICK ACTION — DAY OLD BREAD
+// ============================================================
+function quickDayOldBread() {
+  switchTab('manual');
+  document.getElementById('tab-manual').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const dateStr = yesterday.toISOString().split('T')[0];
+  document.getElementById('purchase-date').value = dateStr;
+  document.getElementById('purchase-time').value = '08:00';
+  document.getElementById('bread-type').value = 'pandesal';
+  document.getElementById('storage-method').value = 'counter';
+  document.getElementById('texture').value = 'slightly-firm';
+  document.getElementById('smell').value = 'neutral';
+  document.getElementById('climate').value = 'hot-humid';
+  document.getElementById('mold').value = 'none';
+  document.getElementById('color-change').value = 'normal';
+  document.getElementById('filling').value = 'na';
+  document.getElementById('opened').value = 'opened';
+  document.getElementById('bread-source').value = 'panaderia';
+  showToast(currentLang === 'fil' ? '🍞 Na-prefill para sa day-old na tinapay!' : '🍞 Pre-filled for day-old bread!');
+}
+
+// ============================================================
+// LEFTOVER TRACKER
+// ============================================================
+const LEFTOVER_KEY = 'bw-leftovers';
+
+function getLeftovers() {
+  try { return JSON.parse(localStorage.getItem(LEFTOVER_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function saveLeftovers(items) {
+  localStorage.setItem(LEFTOVER_KEY, JSON.stringify(items));
+}
+
+function addLeftover() {
+  const breadKey = document.getElementById('leftover-bread-type').value;
+  const storage = document.getElementById('leftover-storage').value;
+  const datetime = document.getElementById('leftover-datetime').value;
+  const customName = document.getElementById('leftover-custom-name').value.trim();
+  if (!breadKey || !datetime) {
+    showToast(currentLang === 'fil' ? '⚠️ Pumili ng uri ng tinapay at petsa!' : '⚠️ Please select bread type and date!');
+    return;
+  }
+  const info = breadData[breadKey];
+  if (!info) return;
+  const storageMult = { counter:1.0,'plastic-bag':0.95,fridge:2.2,freezer:25,airtight:1.15 };
+  const mult = storageMult[storage] || 1.0;
+  const avgDays = (info.counterDays[0] + info.counterDays[1]) / 2;
+  const lifeHours = Math.round(avgDays * 24 * mult * 0.82);
+  const purchaseTime = new Date(datetime).getTime();
+  const expiryTime = purchaseTime + (lifeHours * 3600000);
+  const leftover = {
+    id: Date.now().toString(),
+    breadKey,
+    breadName: customName || info.name,
+    emoji: info.emoji,
+    storage,
+    purchaseTime,
+    expiryTime,
+    lifeHours,
+    addedAt: Date.now()
+  };
+  const items = getLeftovers();
+  items.push(leftover);
+  saveLeftovers(items);
+  document.getElementById('leftover-bread-type').value = '';
+  document.getElementById('leftover-custom-name').value = '';
+  document.getElementById('leftover-datetime').value = '';
+  setDefaultDatetime();
+  renderLeftovers();
+  scheduleNotifications();
+  showToast(currentLang === 'fil' ? '✅ Nida-track na ang tinapay!' : '✅ Bread is now being tracked!');
+}
+
+function removeLeftover(id) {
+  const items = getLeftovers().filter(l => l.id !== id);
+  saveLeftovers(items);
+  renderLeftovers();
+  showToast(currentLang === 'fil' ? '🗑️ Inalis sa tracker!' : '🗑️ Removed from tracker!');
+}
+
+function renderLeftovers() {
+  const items = getLeftovers();
+  const container = document.getElementById('leftover-list');
+  if (!items.length) {
+    container.innerHTML = `<div class="empty-state">
+      <div style="font-size:2.5rem;margin-bottom:.5rem;">🍞</div>
+      ${currentLang === 'fil' ? 'Wala pang tinapay na tina-track. Magdagdag ng isa!' : 'No bread being tracked yet. Add some above!'}
+    </div>`;
+    return;
+  }
+  const now = Date.now();
+  items.sort((a, b) => a.expiryTime - b.expiryTime);
+  container.innerHTML = items.map(item => {
+    const remaining = item.expiryTime - now;
+    const hoursLeft = Math.max(0, Math.floor(remaining / 3600000));
+    const daysLeft = Math.floor(hoursLeft / 24);
+    const minsLeft = Math.floor((remaining % 3600000) / 60000);
+    const isExpired = remaining <= 0;
+    const isWarning = !isExpired && hoursLeft < 6;
+    const isDanger = !isExpired && hoursLeft < 24;
+    let countdownText = '';
+    let countdownClass = 'leftover-fresh';
+    if (isExpired) {
+      countdownText = currentLang === 'fil' ? '⚠️ Expired na!' : '⚠️ Expired!';
+      countdownClass = 'leftover-danger';
+    } else if (isWarning) {
+      countdownText = currentLang === 'fil' ? `⚡ ${hoursLeft}h ${minsLeft}m na lang!` : `⚡ ${hoursLeft}h ${minsLeft}m left!`;
+      countdownClass = 'leftover-danger';
+    } else if (isDanger) {
+      countdownText = currentLang === 'fil' ? `⚠️ ${hoursLeft}h na lang!` : `⚠️ ${hoursLeft}h left!`;
+      countdownClass = 'leftover-warn';
+    } else {
+      countdownText = currentLang === 'fil' ? `✅ ${daysLeft}d ${hoursLeft % 24}h na lang` : `✅ ${daysLeft}d ${hoursLeft % 24}h remaining`;
+      countdownClass = 'leftover-fresh';
+    }
+    const storageLabels = { counter:'Counter',fridge:'Fridge',freezer:'Freezer','plastic-bag':'Plastic Bag',airtight:'Airtight' };
+    const purchaseDate = new Date(item.purchaseTime).toLocaleDateString('en-PH');
+    return `<div class="leftover-card">
+      <div class="leftover-emoji">${item.emoji}</div>
+      <div class="leftover-info">
+        <div class="leftover-name">${item.breadName}</div>
+        <div class="leftover-meta">${storageLabels[item.storage] || item.storage} · ${currentLang === 'fil' ? 'Binili' : 'Bought'}: ${purchaseDate}</div>
+        <div class="leftover-countdown ${countdownClass}">${countdownText}</div>
+      </div>
+      <div class="leftover-actions">
+        <button class="leftover-btn danger" onclick="removeLeftover('${item.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+setInterval(() => {
+  if (document.getElementById('page-leftovers')?.classList.contains('active')) {
+    renderLeftovers();
+  }
+}, 60000);
+
+// ============================================================
+// PUSH NOTIFICATIONS
+// ============================================================
+async function requestNotifPermission() {
+  if (!('Notification' in window)) {
+    showToast(currentLang === 'fil' ? '⚠️ Hindi sinusuportahan ng browser!' : '⚠️ Browser does not support notifications!');
+    return;
+  }
+  const permission = await Notification.requestPermission();
+  if (permission === 'granted') {
+    document.getElementById('notif-permission-banner').style.display = 'none';
+    showToast(currentLang === 'fil' ? '✅ Na-enable ang notifications!' : '✅ Notifications enabled!');
+    scheduleNotifications();
+  } else {
+    showToast(currentLang === 'fil' ? '⚠️ Hindi pinayagan ang notifications.' : '⚠️ Notifications not allowed.');
+  }
+}
+
+function checkNotifPermission() {
+  if (!('Notification' in window)) return;
+  const banner = document.getElementById('notif-permission-banner');
+  if (Notification.permission !== 'granted') {
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+    scheduleNotifications();
+  }
+}
+
+function scheduleNotifications() {
+  if (Notification.permission !== 'granted') return;
+  const items = getLeftovers();
+  const now = Date.now();
+  items.forEach(item => {
+    const remaining = item.expiryTime - now;
+    const hoursLeft = remaining / 3600000;
+    if (hoursLeft > 0 && hoursLeft <= 24) {
+      setTimeout(() => {
+        new Notification('🍞 BreadWatch Alert!', {
+          body: currentLang === 'fil'
+            ? `Ang iyong ${item.breadName} ay mag-e-expire sa loob ng 24 oras!`
+            : `Your ${item.breadName} will expire in 24 hours!`,
+          icon: '/BreadWatch2003/icon-192.png'
+        });
+      }, Math.max(0, remaining - (24 * 3600000)));
+    }
+    if (hoursLeft > 0 && hoursLeft <= 2) {
+      setTimeout(() => {
+        new Notification('⚠️ BreadWatch — Expires Soon!', {
+          body: currentLang === 'fil'
+            ? `Ang iyong ${item.breadName} ay mag-e-expire na!`
+            : `Your ${item.breadName} expires very soon!`,
+          icon: '/BreadWatch2003/icon-192.png'
+        });
+      }, Math.max(0, remaining - (2 * 3600000)));
+    }
+  });
+}
+
+function populateLeftoverDropdown() {
+  const sel = document.getElementById('leftover-bread-type');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Select type</option>' +
+    Object.entries(breadData).map(([k,v]) => `<option value="${k}">${v.emoji} ${v.name}</option>`).join('');
+}
+
+function setDefaultDatetime() {
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  const str = local.toISOString().slice(0, 16);
+  const el = document.getElementById('leftover-datetime');
+  if (el) el.value = str;
+}
+
+// ============================================================
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded',()=>{
   populateBreadDropdown();
+  populateLeftoverDropdown();
+  setDefaultDatetime();
+  checkNotifPermission();
+  renderLeftovers();
   renderTipsBreadList();
   document.getElementById('purchase-date').valueAsDate=new Date();
   document.getElementById('purchase-time').value=new Date().toTimeString().slice(0,5);
